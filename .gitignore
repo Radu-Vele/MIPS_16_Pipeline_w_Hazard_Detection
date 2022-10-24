@@ -84,3 +84,11 @@
 !*.elf
 !*.bmm
 !*.xmp
+#########
+#LaTeX files and documentation
+#########
+!*.tex
+!*.bib
+!*.png
+!*.jpg
+!*.svg
