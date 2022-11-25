@@ -14,6 +14,7 @@
 -- 
 -- Revision:
 -- Revision 0.01 - File Created
+-- Revision 1 - Remove logic for LUI, BLZ
 -- Additional Comments:
 -- 
 ----------------------------------------------------------------------------------
@@ -39,23 +40,22 @@ entity ctrl_unit is
 end ctrl_unit;
 
 architecture Behavioral of ctrl_unit is
-    signal tmp_out: std_logic_vector (9 downto 0); -- for clarity
+    signal tmp_out: std_logic_vector (9 downto 0);
 begin
     output_computation: process(opcode)
     begin
         case opcode is
-            when "000" => tmp_out <= "1000010001";
-            when "001" => tmp_out <= "0110000001";
-            when "010" => tmp_out <= "0110000011";
-            when "011" => tmp_out <= "0110000100";
-            when "100" => tmp_out <= "1101001000";
-            when "101" => tmp_out <= "0101001000";
-            when "110" => tmp_out <= "0110011001";
-            when "111" => tmp_out <= "1110100000";
+            when "000" => tmp_out <= "1000010001"; -- R-type instruction
+            when "001" => tmp_out <= "0110000001"; -- Addi
+            when "010" => tmp_out <= "0110000011"; -- Lw
+            when "011" => tmp_out <= "0110000100"; -- Sw
+            when "100" => tmp_out <= "1101001000"; -- Beq
+            when "111" => tmp_out <= "1110100000"; -- Jump
             when others => tmp_out <= "0000000000";
         end case;
     end process;
     
+    --outputs assignment
     RegDst <= tmp_out(9);
     ExtOp <= tmp_out(8);
     ALUSrc <= tmp_out(7);
