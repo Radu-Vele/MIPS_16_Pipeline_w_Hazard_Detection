@@ -122,7 +122,7 @@ architecture Behavioral of mips16_top_sim is
     signal C_Jump: std_logic;
     signal C_MemWrite: std_logic;
     signal C_MemWriteEnable: std_logic;
-    signal C_MemtoReg: std_logic;
+    signal C_MemToReg: std_logic;
     signal C_ALUOp: std_logic_vector(1 downto 0);
     signal C_PCSrc_ctrl: std_logic;
     
@@ -151,6 +151,9 @@ architecture Behavioral of mips16_top_sim is
     
     --outputs of WB
     signal WB_w_data: std_logic_vector(15 downto 0);
+    
+    -- misc
+    signal EX_wr_addr: std_logic_vector(2 downto 0);
 
 -- Pipeline registers
     signal IF_ID: std_logic_vector(32 downto 0);
@@ -173,20 +176,132 @@ architecture Behavioral of mips16_top_sim is
     
     -- MSB                                                                       LSB
     --  -----------------------------------------------------------------------------
-    -- | WB CTRL | MEM CTRL | Branch_addr | Zero | ALU_out | Ext_imm | Wr_Add_chosen |    
+    -- | WB CTRL | MEM CTRL | Branch_addr | Zero | ALU_out |   RD2   | Wr_Add_chosen |    
     --  -----------------------------------------------------------------------------
     -- 55        53         51           35     34         18        2               0            
     
-    signal MEM_WB: std_logic_vector(1 downto 0);
+    signal MEM_WB: std_logic_vector(33 downto 0);
     
-    -- MSB                               LSB
-    --  -----------------------------------
-    -- | WB CTRL | MEM Data Out |  ALU Out | 
-    --  -----------------------------------
-    -- 33        31             15         0
+    -- MSB                                              LSB
+    --  ---------------------------------------------------
+    -- | WB CTRL | Wr_Add_chosen | MEM Data Out |  ALU Out | 
+    --  ---------------------------------------------------
+    -- 36        34             31             15         0
        
 begin
 
+    IF_connect: IF_unit port map (
+        clk100MHz => clk,
+        jump_addr => ID_ext_imm,
+        branch_addr => EX_MEM(51 downto 36),
+        jump_ctrl => C_Jump,
+        PCsrc_ctrl => C_PCSrc_ctrl, -- TRICKY
+        reset_pc => reset,
+        enable_pc => en_pc, 
+        instruction => IF_instruction,
+        pc_plus_one  => IF_pc_plus_one
+    );
+    
+    pl_IF_ID: process(clk) is 
+    begin
+        if rising_edge(clk) then
+            IF_ID(31 downto 16) <= IF_instruction;
+            IF_ID(16 downto 0) <= IF_pc_plus_one;
+        end if;
+    end process;    
+    
+    ID_connect: ID_unit port map (
+        clk100MHz => clk,
+        instruction => IF_ID(31 downto 16),
+        wd => WB_w_data,
+        RegWrite => C_RegWrite,
+        RegDstAddress => MEM_WB(34 downto 32), 
+        ExtOp => C_ExtOp,
+        rd1 => ID_rd1,
+        rd2 => ID_rd2,
+        ext_imm => ID_ext_imm,
+        func => ID_func,
+        sa => ID_sa,
+        write_address_1 => ID_wr_addr1,
+        write_address_2 => ID_wr_addr2
+    );
+    
+    pl_ID_EX: process(clk) is
+    begin
+        if (rising_edge(clk)) then
+            ID_EX(81) <= C_MemToReg;
+            ID_EX(80) <= C_RegWrite;
+            ID_EX(79) <= C_MemWrite;
+            ID_EX(78) <= C_Branch;
+            ID_EX(77 downto 76) <= C_ALUOp;
+            ID_EX(75) <= C_ALUSrc;
+            ID_EX(74) <= C_RegDst;
+            ID_EX(73 downto 58) <= IF_ID(15 downto 0);
+            ID_EX(57 downto 42) <= ID_rd1;
+            ID_EX(41 downto 26) <= ID_rd2;
+            ID_EX(25 downto 10) <= ID_ext_imm;
+            ID_EX(9 downto 7) <= ID_wr_addr1;
+            ID_EX(6 downto 4) <= ID_wr_addr2;
+            ID_EX(3) <= ID_sa;
+            ID_EX(2 downto 0) <= ID_func;
+        end if;
+    end process;
+    
+    EX_connect: EX_unit port map (
+        next_pc => ID_EX(73 downto 58),
+        rd1 => ID_EX(57 downto 42),
+        rd2 => ID_EX(41 downto 26),
+        ALUSrc => ID_EX(75),
+        ext_imm => ID_EX(25 downto 10),
+        sa => ID_EX(3),
+        func => ID_EX(2 downto 0),
+        ALUOp => ID_EX(77 downto 76),
+        branch_address => EX_branch_addr,
+        zero => EX_zero,
+        ALURes => EX_ALU_out
+    );
+    
+    mux_wr_addr_choice: EX_wr_addr <= 
+        ID_EX(9 downto 5) when ID_EX(74) = '0' 
+        else ID_EX(6 downto 4); -- TRICKY
+
+    
+    pl_EX_MEM: process(clk) is
+    begin
+        if rising_edge(clk) then 
+            EX_MEM(55 downto 54) <= ID_EX(81 downto 80);
+            EX_MEM(53 downto 52) <= ID_EX(79 downto 78);
+            EX_MEM(51 downto 36) <= EX_branch_addr;
+            EX_MEM(35) <= EX_zero;
+            EX_MEM(34 downto 19) <= EX_ALU_out;
+            EX_MEM(18 downto 3) <= ID_EX(41 downto 26);
+            EX_MEM(2 downto 0) <= EX_wr_addr;
+        end if;    
+    end process;
+    
+    MEM_connect: MEM_unit port map(
+        clk100MHz => clk,
+        MemWrite => EX_MEM(53),
+        ALURes => EX_MEM(34 downto 29), 
+        RD2 => EX_MEM(18 downto 3),
+        ALURes_out => MEM_ALU_out,
+        MemData => MEM_data_out
+    );
+    
+    pl_MEM_WB: process(clk) is
+    begin
+        if rising_edge(clk) then 
+            MEM_WB(36 downto 35) <= EX_MEM(55 downto 54);
+            MEM_WB(34 downto 32) <= EX_MEM(2 downto 0);
+            MEM_WB(31 downto 16) <= MEM_data_out;
+            MEM_WB(15 downto 0) <= MEM_ALU_out;
+        end if;
+    end process;
+    
+    WB_unit: WB_w_data <= 
+        MEM_WB(31 downto 16) when MEM_WB(36) = '1'
+        else MEM_WB(15 downto 0);
+    
 
 end Behavioral;
  

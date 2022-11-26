@@ -58,5 +58,7 @@ begin
     
     MemData <= curr_content(to_integer(unsigned(ALURes)));
     ALURes_out <= ALURes;
+    
+    --TODO ADD branch signal generation
 
 end Behavioral;
