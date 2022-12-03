@@ -27,10 +27,14 @@ entity mem_unit is
     Port ( 
         clk100MHz: in std_logic;
         MemWrite: in std_logic;
+        MemRead: in std_logic;
         ALURes: in std_logic_vector (15 downto 0);
         RD2: in std_logic_vector (15 downto 0);
+        zero_detected: in std_logic; 
+        branch_ins: in std_logic;
         ALURes_out: out std_logic_vector (15 downto 0);
-        MemData: out std_logic_vector (15 downto 0)
+        MemData: out std_logic_vector (15 downto 0);
+        branch_taken: out std_logic
     );
 end mem_unit;
 
@@ -56,9 +60,17 @@ begin
         end if;
     end process;
     
-    MemData <= curr_content(to_integer(unsigned(ALURes)));
-    ALURes_out <= ALURes;
+    reading: process(clk100MHz, MemRead) is 
+    begin    
+        if MemRead = '1' then
+            MemData <= curr_content(to_integer(unsigned(ALURes)));
+        end if;
+    end process;
     
-    --TODO ADD branch signal generation
+    ALURes_out <= ALURes;
+
+    branch_taken <= 
+        '1' when (zero_detected = '1' and branch_ins = '1')
+        else '0';
 
 end Behavioral;

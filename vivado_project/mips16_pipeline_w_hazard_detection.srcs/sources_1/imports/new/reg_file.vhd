@@ -47,8 +47,8 @@ architecture Behavioral of reg_file is
 
 	signal current_content: reg_content := (
 		x"0001",
-		x"000A",
-		x"000F",
+		x"0003",
+		x"0002",
 		x"0000",
 		x"0000",
 		x"0002",
@@ -60,6 +60,7 @@ begin
 	
     synchronized: process(clk100MHz)
 	begin
+	   -- TODO: read on the falling edge?
 	   if rising_edge(clk100MHz) then
 	       if reg_write = '1' then
 	           current_content(to_integer(unsigned(write_address))) <= write_data; --synchronous write

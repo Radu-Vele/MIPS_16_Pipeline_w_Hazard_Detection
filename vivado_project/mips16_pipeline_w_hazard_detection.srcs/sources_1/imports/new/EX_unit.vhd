@@ -71,12 +71,6 @@ begin
             when "101" => tmp_res <= rd1 and second_alu_input;
             when "110" => tmp_res <= rd1 or second_alu_input;
             when "111" => tmp_res <= rd1 xor second_alu_input;
-            when "000" => --sra
-                if(sa = '1') then 
-                    tmp_res <= rd1(15) & rd1(15 downto 1);
-                else
-                    tmp_res <= rd1;
-                end if;
             when others => tmp_res <= x"0000";
         end case;
     end process;
@@ -92,13 +86,13 @@ begin
                 when "101" => ALUCtrl <= "101"; --and 
                 when "110" => ALUCtrl <= "110"; --or
                 when "111" => ALUCtrl <= "111"; --xor
-                when "000" => ALUCtrl <= "000"; --sra
                 when others => ALUCtrl <= "000"; --default
             end case;         
         else
             case(ALUOp) is 
                 when "00" => ALUCtrl <= "001"; -- addition
                 when "01" => ALUCtrl <= "010"; -- subtraction for branch
+                when "10" => ALUCtrl <= "010"; -- subtraction for subi
                 when others => ALUCtrl <= "000";
             end case;
         end if;

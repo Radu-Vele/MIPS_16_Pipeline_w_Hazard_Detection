@@ -28,40 +28,51 @@ use IEEE.NUMERIC_STD.ALL;
 entity ctrl_unit is
   Port ( 
     opcode: in std_logic_vector (2 downto 0);
+    func: in std_logic_vector(2 downto 0);
     RegDst: out std_logic;
     ExtOp: out std_logic;
     ALUSrc: out std_logic;
     Branch: out std_logic;
     Jump: out std_logic;
     ALUOp: out std_logic_vector(1 downto 0);
+    MemRead: out std_logic;
     MemWrite: out std_logic;
     MemtoReg: out std_logic;
     RegWrite: out std_logic);
 end ctrl_unit;
 
 architecture Behavioral of ctrl_unit is
-    signal tmp_out: std_logic_vector (9 downto 0);
+    signal tmp_out: std_logic_vector (10 downto 0);
 begin
-    output_computation: process(opcode)
+    output_computation: process(opcode, func)
     begin
         case opcode is
-            when "000" => tmp_out <= "1000010001"; -- R-type instruction
-            when "001" => tmp_out <= "0110000001"; -- Addi
-            when "010" => tmp_out <= "0110000011"; -- Lw
-            when "011" => tmp_out <= "0110000100"; -- Sw
-            when "100" => tmp_out <= "1101001000"; -- Beq
-            when "111" => tmp_out <= "1110100000"; -- Jump
-            when others => tmp_out <= "0000000000";
+            when "000" =>
+                
+                tmp_out <= "10000100001"; -- R-type instruction 
+                
+                if func = "000" then
+                    tmp_out <= "00000000000";    
+                end if;
+            
+            when "001" => tmp_out <= "01100000001"; -- Addi
+            when "101" => tmp_out <= "01100100001"; -- Subi 
+            when "010" => tmp_out <= "01100001011"; -- Lw
+            when "011" => tmp_out <= "01100000100"; -- Sw
+            when "100" => tmp_out <= "11010010000"; -- Beq
+            when "111" => tmp_out <= "11101000000"; -- Jump
+            when others => tmp_out <= "00000000000";
         end case;
     end process;
     
     --outputs assignment
-    RegDst <= tmp_out(9);
-    ExtOp <= tmp_out(8);
-    ALUSrc <= tmp_out(7);
-    Branch <= tmp_out(6);
-    Jump <= tmp_out(5);
-    ALUOp <= tmp_out(4 downto 3);
+    RegDst <= tmp_out(10);
+    ExtOp <= tmp_out(9);
+    ALUSrc <= tmp_out(8);
+    Branch <= tmp_out(7);
+    Jump <= tmp_out(6);
+    ALUOp <= tmp_out(5 downto 4);
+    MemRead <= tmp_out(3);
     MemWrite <= tmp_out(2);
     MemtoReg <= tmp_out(1);
     RegWrite <= tmp_out(0);
