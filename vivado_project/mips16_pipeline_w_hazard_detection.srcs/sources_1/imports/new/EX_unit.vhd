@@ -37,44 +37,79 @@ entity EX_unit is
         ALUOp: in std_logic_vector(1 downto 0);
         branch_address: out std_logic_vector(15 downto 0);
         zero: out std_logic;
-        ALURes: out std_logic_vector (15 downto 0)
+        ALURes: out std_logic_vector (15 downto 0);
+        -- *** FWD Unit Add-on
+        EX_MEM_ALUOut: in std_logic_vector(15 downto 0);
+        MEM_WB_ALUOut: in std_logic_vector(15 downto 0);
+        EX_MEM_RegWrite: in std_logic;
+        MEM_WB_RegWrite: in std_logic;
+        EX_MEM_RegDst: in std_logic_vector(2 downto 0);
+        MEM_WB_RegDst: in std_logic_vector(2 downto 0);
+        ID_EX_Rs: in std_logic_vector(2 downto 0);
+        ID_EX_Rt: in std_logic_vector(2 downto 0)
     );
 end EX_unit;
 
 architecture Behavioral of EX_unit is
-    signal second_alu_input: std_logic_vector (15 downto 0);
+
+    component EX_fwd_unit is
+        Port (
+            EX_MEM_RegWrite: in std_logic;
+            MEM_WB_RegWrite: in std_logic;
+            EX_MEM_RegDst: in std_logic_vector(2 downto 0);
+            MEM_WB_RegDst: in std_logic_vector(2 downto 0);
+            ID_EX_Rs: in std_logic_vector(2 downto 0);
+            ID_EX_Rt: in std_logic_vector(2 downto 0);
+            ForwardA: out std_logic_vector (1 downto 0);
+            ForwardB: out std_logic_vector (1 downto 0)
+        );
+    end component;
+
+    signal ext_or_rt: std_logic_vector (15 downto 0);
     signal ALUCtrl: std_logic_vector (2 downto 0);
     signal tmp_res: std_logic_vector (15 downto 0);
+    
+    signal ForwardA: std_logic_vector (1 downto 0);
+    signal ForwardB: std_logic_vector (1 downto 0);
+    signal ALU_input_A: std_logic_vector (15 downto 0);
+    signal ALU_input_B: std_logic_vector (15 downto 0);
 begin
 
     branch_adder: branch_address <= next_pc + ext_imm; --no shifting required
-
-    input1_MUX: second_alu_input <= rd2 when ALUSrc = '0' else ext_imm;
-
-    ALU_component: process(ALUCtrl, rd1, second_alu_input, sa, ext_imm)
-    begin
-        case(ALUCtrl) is 
-            when "001" => tmp_res <= rd1 + second_alu_input; --addition
-            when "010" => tmp_res <= rd1 - second_alu_input; --subtraction
-            when "011" => -- sll
-                if(sa = '1') then
-                    tmp_res <= rd1(14 downto 0) & '0';
-                else
-                    tmp_res <= rd1;
-                end if;
-            when "100" => --srl
-                if(sa = '1') then
-                    tmp_res <= '0' & rd1(15 downto 1);
-                else
-                    tmp_res <= rd1;
-                end if;
-            when "101" => tmp_res <= rd1 and second_alu_input;
-            when "110" => tmp_res <= rd1 or second_alu_input;
-            when "111" => tmp_res <= rd1 xor second_alu_input;
-            when others => tmp_res <= x"0000";
-        end case;
-    end process;
-
+    
+    hazard_detection: EX_fwd_unit port map (
+        EX_MEM_RegWrite => EX_MEM_RegWrite,
+        MEM_WB_RegWrite => MEM_WB_RegWrite,
+        EX_MEM_RegDst => EX_MEM_RegDst,
+        MEM_WB_RegDst => MEM_WB_RegDst,
+        ID_EX_Rs => ID_EX_Rs,
+        ID_EX_Rt => ID_EX_Rt,
+        ForwardA => ForwardA,
+        ForwardB => ForwardB
+    ); 
+    
+    input1_MUX: ext_or_rt <= rd2 when ALUSrc = '0' else ext_imm;
+    
+    MUX_FWD_A: process (ForwardA, EX_MEM_ALUOut, MEM_WB_ALUOut, rd1)
+        begin
+           case ForwardA is
+              when "00" => ALU_input_A <= rd1;
+              when "01" => ALU_input_A <= EX_MEM_ALUOut;
+              when "10" => ALU_input_A <= MEM_WB_ALUOut;
+              when others => ALU_input_A <= rd1;
+           end case;
+        end process;
+                              
+    MUX_FWD_B: process (ForwardB, EX_MEM_ALUOut, MEM_WB_ALUOut, rd1)
+        begin
+           case ForwardB is
+              when "00" => ALU_input_B <= ext_or_rt;
+              when "01" => ALU_input_B <= EX_MEM_ALUOut;
+              when "10" => ALU_input_B <= MEM_WB_ALUOut;
+              when others => ALU_input_B <= ext_or_rt;
+           end case;
+        end process;
+        
     ALU_control: process(func, ALUOp)
     begin
         if ALUOp = "10" then -- we deal with R-type
@@ -98,6 +133,30 @@ begin
         end if;
     end process;
     
+    ALU_component: process(ALUCtrl, ALU_input_A, ALU_input_B, sa, ext_imm)
+    begin
+        case(ALUCtrl) is 
+            when "001" => tmp_res <= ALU_input_A + ALU_input_B; --addition
+            when "010" => tmp_res <= ALU_input_A - ALU_input_B; --subtraction
+            when "011" => -- sll
+                if(sa = '1') then
+                    tmp_res <= ALU_input_A(14 downto 0) & '0';
+                else
+                    tmp_res <= ALU_input_A;
+                end if;
+            when "100" => --srl
+                if(sa = '1') then
+                    tmp_res <= '0' & ALU_input_A(15 downto 1);
+                else
+                    tmp_res <= ALU_input_A;
+                end if;
+            when "101" => tmp_res <= ALU_input_A and ALU_input_B;
+            when "110" => tmp_res <= ALU_input_A or ALU_input_B;
+            when "111" => tmp_res <= ALU_input_A xor ALU_input_B;
+            when others => tmp_res <= x"0000";
+        end case;
+    end process;
+
     --outputs assignment
     ALURes <= tmp_res;
     zero <= '1' when (tmp_res = x"0000") else '0';    
