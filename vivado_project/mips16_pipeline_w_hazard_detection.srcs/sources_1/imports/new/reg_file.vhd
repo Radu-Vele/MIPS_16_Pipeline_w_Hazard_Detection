@@ -45,7 +45,7 @@ architecture Behavioral of reg_file is
 
 	type reg_content is array(0 to 7) of STD_LOGIC_VECTOR(15 downto 0); --8x16 size
 
-	signal current_content: reg_content := (
+	signal curr_content: reg_content := (
 		x"0001",
 		x"0003",
 		x"0002",
@@ -55,21 +55,26 @@ architecture Behavioral of reg_file is
 		x"0002",
 		x"ABCD",
 		others => x"1111");
-
 begin
 	
     synchronized: process(clk100MHz)
-	begin
-	   -- TODO: read on the falling edge?
-	   if rising_edge(clk100MHz) then
-	       if reg_write = '1' then
-	           current_content(to_integer(unsigned(write_address))) <= write_data; --synchronous write
+	begin 
+	   if rising_edge(clk100MHz) then -- writing
+	       if reg_write = '1' then    
+	           curr_content(to_integer(unsigned(write_address))) <= write_data; --synchronous write
 	       end if;
+	   end if;
+	   
+	   if falling_edge(clk100MHz) then -- reading
+	       read_data1 <= curr_content(to_integer(unsigned(read_address1)));
+	       read_data2 <= curr_content(to_integer(unsigned(read_address2)));
+	       
+	       if read_address1 = write_address then
+	           read_data1 <= write_data;
+	       elsif read_address2 = write_address then
+	           read_data2 <= write_data;
+	       end if;      
 	   end if;    
 	end process;
-	
-	--asynchronous read
-	read_data1 <= current_content(to_integer(unsigned(read_address1)));
-	read_data2 <= current_content(to_integer(unsigned(read_address2)));
 	
 end architecture Behavioral;

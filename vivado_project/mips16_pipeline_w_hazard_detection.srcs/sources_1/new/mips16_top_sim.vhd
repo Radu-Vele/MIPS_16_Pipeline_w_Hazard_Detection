@@ -168,13 +168,20 @@ architecture Behavioral of mips16_top_sim is
     --  ----------------------
     -- 31           15       0
     
-    signal ID_EX: std_logic_vector(82 downto 0);
+    signal ID_EX: std_logic_vector(88 downto 0);
     
     -- MSB                                                                                                 LSB
     --  -------------------------------------------------------------------------------------------------------
     -- | WB CTRL |  MEM CTRL | EX CTRL | PC + 1 |   RD1   |   RD2   | EXT_IMM | Wr_Add1 | Wr_addr2 | sa | func |
     --  -------------------------------------------------------------------------------------------------------
     -- 82       80           77       73       57        41         25        9         6          3    2      0
+    
+    -- *** FWD Unit Add-on   
+    --  --------------------------
+    -- | RS Address | RT Address | WB CTRL ...
+    --  --------------------------
+    -- 88          85            82
+    
     
     --  WB CTRL:
     --      82 : MemToReg
@@ -264,8 +271,10 @@ begin
     pl_ID_EX: process(reset, clk) is
     begin
         if reset = '1' then
-            ID_EX(82 downto 0) <= (others => '0');
+            ID_EX(88 downto 0) <= (others => '0');
         elsif rising_edge(clk) then
+            ID_EX(88 downto 86)<= IF_ID(28 downto 26); -- RS
+            ID_EX(85 downto 83) <= IF_ID(25 downto 23); -- RT
             ID_EX(82) <= C_MemToReg;
             ID_EX(81) <= C_RegWrite;
             ID_EX(80) <= C_MemRead;
