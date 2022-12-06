@@ -71,7 +71,9 @@ begin
 	       
 	       if read_address1 = write_address then
 	           read_data1 <= write_data;
-	       elsif read_address2 = write_address then
+	       end if;
+	       
+	       if read_address2 = write_address then
 	           read_data2 <= write_data;
 	       end if;      
 	   end if;    

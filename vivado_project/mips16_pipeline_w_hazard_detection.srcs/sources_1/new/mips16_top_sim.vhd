@@ -97,7 +97,16 @@ architecture Behavioral of mips16_top_sim is
             ALUOp: in std_logic_vector(1 downto 0);
             branch_address: out std_logic_vector(15 downto 0);
             zero: out std_logic;
-            ALURes: out std_logic_vector (15 downto 0)
+            ALURes: out std_logic_vector (15 downto 0);
+            -- *** FWD Unit Add-on
+            EX_MEM_ALUOut: in std_logic_vector(15 downto 0);
+            MEM_WB_ALUOut: in std_logic_vector(15 downto 0);
+            EX_MEM_RegWrite: in std_logic;
+            MEM_WB_RegWrite: in std_logic;
+            EX_MEM_RegDst: in std_logic_vector(2 downto 0);
+            MEM_WB_RegDst: in std_logic_vector(2 downto 0);
+            ID_EX_Rs: in std_logic_vector(2 downto 0);
+            ID_EX_Rt: in std_logic_vector(2 downto 0)
         );
     end component;
     
@@ -112,7 +121,15 @@ architecture Behavioral of mips16_top_sim is
             branch_ins: in std_logic;
             ALURes_out: out std_logic_vector (15 downto 0);
             MemData: out std_logic_vector (15 downto 0);
-            branch_taken: out std_logic
+            branch_taken: out std_logic;
+            -- MEM FWD Add-on
+            MEM_WB_RegWrite: in std_logic;
+            WB_BUF_RegWrite: in std_logic;
+            EX_MEM_Rt: in std_logic_vector(2 downto 0);
+            WB_BUF_RegDst: in std_logic_vector(2 downto 0);
+            MEM_WB_RegDst: in std_logic_vector(2 downto 0);
+            MEM_WB_RegData: in std_logic_vector(15 downto 0);
+            WB_BUF_RegData: in std_logic_vector(15 downto 0)
         );
     end component;
     
@@ -181,8 +198,7 @@ architecture Behavioral of mips16_top_sim is
     -- | RS Address | RT Address | WB CTRL ...
     --  --------------------------
     -- 88          85            82
-    
-    
+   
     --  WB CTRL:
     --      82 : MemToReg
     --      81 : RegWrite
@@ -197,13 +213,19 @@ architecture Behavioral of mips16_top_sim is
     --      75 : ALUSrc
     --      74 : RegDst
     
-    signal EX_MEM: std_logic_vector(56 downto 0);
+    signal EX_MEM: std_logic_vector(59 downto 0);
     
     -- MSB                                                                             LSB
     --  --------------------------------------------------------------------------------------
     --  | WB CTRL | MEM CTRL |  Branch_addr  |  Zero  | ALU_out |   RD2   |   Wr_Add_chosen   |    
     --  --------------------------------------------------------------------------------------
     --  56       54          51              35        34        18        2                   0
+    
+    -- *** MEM FWD Unit Add-on   
+    --  --------------------------
+    -- | RT Address | WB CTRL ...
+    --  --------------------------
+    -- 59          56
     
     signal MEM_WB: std_logic_vector(36 downto 0);
     
@@ -212,6 +234,15 @@ architecture Behavioral of mips16_top_sim is
     -- | WB CTRL | Wr_Add_chosen | MEM Data Out |  ALU Out | 
     --  ---------------------------------------------------
     -- 36        34             31             15         0
+    
+    signal WB_BUF: std_logic_vector(19 downto 0); -- save the WB data for MEM FWD unit
+    
+    -- *** MEM FWD Unit Add-on
+    -- MSB
+    --  -----------------------------------------------
+    -- | RegWrite | Wr_Add_chosen | Write_Back_MUX_Out | 
+    --  -----------------------------------------------
+    -- 19         18             15                    0
        
 begin
 
@@ -305,19 +336,27 @@ begin
         ALUOp => ID_EX(77 downto 76),
         branch_address => EX_branch_addr,
         zero => EX_zero,
-        ALURes => EX_ALU_out
+        ALURes => EX_ALU_out,
+        EX_MEM_ALUOut => EX_MEM(34 downto 19),
+        MEM_WB_ALUOut => MEM_WB(15 downto 0),
+        EX_MEM_RegWrite => EX_MEM(55),
+        MEM_WB_RegWrite => MEM_WB(35),
+        EX_MEM_RegDst => EX_MEM(2 downto 0),
+        MEM_WB_RegDst => MEM_WB(34 downto 32),
+        ID_EX_Rs => ID_EX(88 downto 86),
+        ID_EX_Rt => ID_EX(85 downto 83)
     );
     
     mux_wr_addr_choice: EX_wr_addr <= 
         ID_EX(9 downto 7) when ID_EX(74) = '0' 
         else ID_EX(6 downto 4);
-
     
     pl_EX_MEM: process(reset, clk) is
     begin
         if reset = '1' then
-            EX_MEM(56 downto 0) <= (others => '0');
+            EX_MEM(59 downto 0) <= (others => '0');
         elsif rising_edge(clk) then
+            EX_MEM(59 downto 57) <= ID_EX(85 downto 83); -- RT address
             EX_MEM(56 downto 55) <= ID_EX(82 downto 81);
             EX_MEM(54 downto 52) <= ID_EX(80 downto 78);
             EX_MEM(51 downto 36) <= EX_branch_addr;
@@ -338,7 +377,14 @@ begin
         branch_ins => EX_MEM(52),
         ALURes_out => MEM_ALU_out,
         MemData => MEM_data_out,
-        branch_taken => MEM_PCSrc
+        branch_taken => MEM_PCSrc,
+        MEM_WB_RegWrite => MEM_WB(35),
+        WB_BUF_RegWrite => WB_BUF(19),
+        EX_MEM_Rt => EX_MEM(59 downto 57),
+        WB_BUF_RegDst => WB_BUF(18 downto 16),
+        MEM_WB_RegDst => MEM_WB(34 downto 32),
+        MEM_WB_RegData => WB_w_data,
+        WB_BUF_RegData => WB_BUF(15 downto 0)
     );
     
     pl_MEM_WB: process(reset, clk) is
@@ -356,6 +402,17 @@ begin
     WB_unit: WB_w_data <= 
         MEM_WB(31 downto 16) when MEM_WB(36) = '1'
         else MEM_WB(15 downto 0);
+        
+    pl_WB_BUF: process(reset, clk) is
+    begin
+        if reset = '1' then
+            WB_BUF(19 downto 0) <= (others => '0');
+        elsif rising_edge(clk) then
+            WB_BUF(19) <= MEM_WB(35);
+            WB_BUF(18 downto 16) <= MEM_WB(34 downto 32);
+            WB_BUF(15 downto 0) <= WB_w_data;
+        end if;
+    end process;
     
 end Behavioral;
  

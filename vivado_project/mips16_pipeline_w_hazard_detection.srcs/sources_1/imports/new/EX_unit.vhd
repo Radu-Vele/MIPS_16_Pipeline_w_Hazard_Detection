@@ -64,13 +64,13 @@ architecture Behavioral of EX_unit is
             ForwardB: out std_logic_vector (1 downto 0)
         );
     end component;
-
-    signal ext_or_rt: std_logic_vector (15 downto 0);
     signal ALUCtrl: std_logic_vector (2 downto 0);
     signal tmp_res: std_logic_vector (15 downto 0);
     
     signal ForwardA: std_logic_vector (1 downto 0);
     signal ForwardB: std_logic_vector (1 downto 0);
+    signal FWD_B_Out: std_logic_vector (15 downto 0);
+
     signal ALU_input_A: std_logic_vector (15 downto 0);
     signal ALU_input_B: std_logic_vector (15 downto 0);
 begin
@@ -87,9 +87,7 @@ begin
         ForwardA => ForwardA,
         ForwardB => ForwardB
     ); 
-    
-    input1_MUX: ext_or_rt <= rd2 when ALUSrc = '0' else ext_imm;
-    
+     
     MUX_FWD_A: process (ForwardA, EX_MEM_ALUOut, MEM_WB_ALUOut, rd1)
         begin
            case ForwardA is
@@ -98,17 +96,19 @@ begin
               when "10" => ALU_input_A <= MEM_WB_ALUOut;
               when others => ALU_input_A <= rd1;
            end case;
-        end process;
+    end process;
                               
-    MUX_FWD_B: process (ForwardB, EX_MEM_ALUOut, MEM_WB_ALUOut, rd1)
+    MUX_FWD_B: process (ForwardB, EX_MEM_ALUOut, MEM_WB_ALUOut, rd1, rd2)
         begin
            case ForwardB is
-              when "00" => ALU_input_B <= ext_or_rt;
-              when "01" => ALU_input_B <= EX_MEM_ALUOut;
-              when "10" => ALU_input_B <= MEM_WB_ALUOut;
-              when others => ALU_input_B <= ext_or_rt;
+              when "00" => FWD_B_Out <= rd2;
+              when "01" => FWD_B_Out <= EX_MEM_ALUOut;
+              when "10" => FWD_B_Out <= MEM_WB_ALUOut;
+              when others => FWD_B_Out <= rd2;
            end case;
-        end process;
+    end process;
+        
+    input1_MUX: ALU_input_B <= ext_imm when ALUSrc = '1' else FWD_B_Out;   
         
     ALU_control: process(func, ALUOp)
     begin
