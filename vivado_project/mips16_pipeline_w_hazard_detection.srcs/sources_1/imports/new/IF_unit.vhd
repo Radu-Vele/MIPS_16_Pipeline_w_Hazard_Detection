@@ -35,14 +35,42 @@ entity IF_unit is
         reset_pc: in std_logic;
         enable_pc: in std_logic; 
         instruction: out std_logic_vector(15 downto 0);
-        pc_plus_one: out std_logic_vector(15 downto 0));
+        pc_plus_one: out std_logic_vector(15 downto 0);
+        -- *** BHT Add-on
+        ID_prv_pc: in std_logic_vector(3 downto 0);
+        ID_Flush: in std_logic;
+        ID_Branch_Taken: in std_logic;
+        ID_Branch_Instruction: in std_logic;
+        prediction: out std_logic;
+        curr_pc: out std_logic_vector(3 downto 0)
+    );
+        
 end IF_unit;
 
 architecture Behavioral of IF_unit is
+
+    component branch_history_table is
+        Port ( 
+            clk: in std_logic; 
+            address: in std_logic_vector(3 downto 0); -- current pc address
+            update_data: in std_logic_vector(15 downto 0); -- new target address
+            write_address: in std_logic_vector(3 downto 0); -- the pc address that corresponds to the new target
+            inc_predictor: in std_logic;
+            branch_instruction: in std_logic;
+            flush: in std_logic;
+            MSB_Pred: out std_logic;
+            predicted_target: out std_logic_vector(15 downto 0)
+        );
+    end component;
+
     signal nxt_pc: std_logic_vector(15 downto 0);
     signal curr_pc_content: std_logic_vector(15 downto 0);
     signal adder_out: std_logic_vector(15 downto 0);
     signal mux1_out: std_logic_vector(15 downto 0);
+    signal mux0_out: std_logic_vector(15 downto 0);
+    signal predicted_target: std_logic_vector(15 downto 0);
+    signal MSB_Pred: std_logic;
+    
     type rom_content is array(0 to 255) of std_logic_vector(15 downto 0);
     
     -- Instructions Format: --------------------
@@ -65,16 +93,13 @@ architecture Behavioral of IF_unit is
     --------------------------------------------
     
     signal curr_rom: rom_content := ( 
--- Load Data Hazard
-      B"000_011_100_001_0_001",-- add $1 <= $3 + $4
-      B"000_011_100_010_0_001",-- add $2 <= $3 + $4
-      B"000_011_100_101_0_001",-- add $5 <= $3 + $4
-      B"000_011_100_110_0_001",-- add $6 <= $3 + $4
-      B"000_011_100_111_0_001",-- add $7 <= $3 + $4
-      B"100_001_010_1111011", -- beq 1 2 -5
-      B"000_011_100_000_0_001",-- add $0 <= $3 + $4
-      B"000_000_011_111_0_001",-- add $7 <= $3 + $0
-
+-- Dynamic branch prediction
+    -- infinite fibonnaci
+      B"000_001_010_011_0_001", -- 0: add $3 = $1 + $2
+      B"000_010_000_001_0_001", -- 1: add $1 = $2 + $0
+      B"000_011_000_010_0_001", -- 2: add $2  = $3 + $0
+      B"100_000_000_1111100", -- 3: beq $0 $0 -4
+      B"000_001_010_011_0_001", 
       others => x"0000"
     );
     
@@ -90,15 +115,30 @@ begin
         end if;
     end process;
     
+    bht_connect: branch_history_table port map (
+        clk => clk100MHz,
+        address => curr_pc_content(3 downto 0),
+        update_data => branch_addr,
+        write_address => ID_prv_pc,
+        inc_predictor => ID_Branch_Taken, 
+        branch_instruction => ID_Branch_Instruction,
+        flush => ID_Flush,
+        MSB_Pred => MSB_Pred,
+        predicted_target => predicted_target
+    );
+    
     instruction <= curr_rom(to_integer(unsigned(curr_pc_content(7 downto 0))));
    
     -- next address computation
     adder: adder_out <= curr_pc_content + "1";
     pc_plus_one <= adder_out; -- needed for ID (branch)
     
-    mux1: mux1_out <= branch_addr when (PCsrc_ctrl = '1') else adder_out;
+    mux_bht: mux0_out <= predicted_target when MSB_Pred = '1' else adder_out;
+    
+    mux1: mux1_out <= branch_addr when (ID_Flush = '1') else mux0_out;
     mux2: nxt_pc <= jump_addr when (jump_ctrl = '1') else mux1_out;  
-
+    
+    prediction <= MSB_Pred;
+    curr_pc <= curr_pc_content(3 downto 0);
     -- TODO: Add Jump detection and address computation here
-    -- TODO: Add Dynamic Branch Prediction Mechanisms
 end Behavioral;

@@ -48,7 +48,15 @@ architecture Behavioral of mips16_top_sim is
             reset_pc: in std_logic;
             enable_pc: in std_logic; 
             instruction: out std_logic_vector(15 downto 0);
-            pc_plus_one: out std_logic_vector(15 downto 0));
+            pc_plus_one: out std_logic_vector(15 downto 0);
+            -- *** BHT Add-on
+            ID_prv_pc: in std_logic_vector(3 downto 0);
+            ID_Flush: in std_logic;
+            ID_Branch_Taken: in std_logic;
+            ID_Branch_Instruction: in std_logic;
+            prediction: out std_logic;
+            curr_pc: out std_logic_vector(3 downto 0)    
+        );
     end component;
     
     component ID_unit is
@@ -106,8 +114,6 @@ architecture Behavioral of mips16_top_sim is
             sa: in std_logic;
             func: in std_logic_vector(2 downto 0);
             ALUOp: in std_logic_vector(1 downto 0);
-            branch_address: out std_logic_vector(15 downto 0);
-            zero: out std_logic;
             ALURes: out std_logic_vector (15 downto 0);
             -- *** FWD Unit Add-on
             EX_MEM_ALUOut: in std_logic_vector(15 downto 0);
@@ -128,11 +134,8 @@ architecture Behavioral of mips16_top_sim is
             MemRead: in std_logic;
             ALURes: in std_logic_vector (15 downto 0);
             RD2: in std_logic_vector (15 downto 0);
-            zero_detected: in std_logic; 
-            branch_ins: in std_logic;
             ALURes_out: out std_logic_vector (15 downto 0);
             MemData: out std_logic_vector (15 downto 0);
-            branch_taken: out std_logic;
             -- MEM FWD Add-on
             MEM_WB_RegWrite: in std_logic;
             WB_BUF_RegWrite: in std_logic;
@@ -177,6 +180,8 @@ architecture Behavioral of mips16_top_sim is
     --outputs of IF
     signal IF_instruction: std_logic_vector(15 downto 0);
     signal IF_pc_plus_one: std_logic_vector(15 downto 0);
+    signal IF_curr_pc: std_logic_vector(3 downto 0);
+    signal IF_prediction: std_logic;
     
     --outputs of ID
     signal ID_rd1: std_logic_vector(15 downto 0); 
@@ -193,28 +198,32 @@ architecture Behavioral of mips16_top_sim is
     signal PC_Enable: std_logic;
     
     --outputs of EX
-    signal EX_branch_addr: std_logic_vector(15 downto 0);
-    signal EX_zero: std_logic; 
     signal EX_ALU_out: std_logic_vector(15 downto 0);
     signal EX_wr_addr: std_logic_vector(2 downto 0);
     
     --outputs of MEM
     signal MEM_ALU_out: std_logic_vector(15 downto 0);
-    signal MEM_data_out: std_logic_vector(15 downto 0);
-    signal MEM_PCSrc: std_logic;
-    
+    signal MEM_data_out: std_logic_vector(15 downto 0);    
     
     --outputs of WB
     signal WB_w_data: std_logic_vector(15 downto 0);
     
+    --misc
+    signal Flush: std_logic;
+    
 -- Pipeline registers
-    signal IF_ID: std_logic_vector(31 downto 0);
+    signal IF_ID: std_logic_vector(36 downto 0);
     
     -- MSB                  LSB
     --  ----------------------
     -- | Instruction | PC + 1 | 
     --  ----------------------
     -- 31           15       0
+    
+    -- *** Dynamic Branch Prediction add-ons
+    --  -----------------------
+    -- | MSB_Pred | Current_PC |
+    --  -----------------------
     
     signal ID_EX: std_logic_vector(88 downto 0);
     
@@ -286,16 +295,30 @@ begin
         reset_pc => reset,
         enable_pc => PC_Enable, -- TODO: If you want to test on the board replace with an and between board button and PC_Enable
         instruction => IF_instruction,
-        pc_plus_one  => IF_pc_plus_one
+        pc_plus_one  => IF_pc_plus_one,
+        ID_prv_pc => IF_ID(35 downto 32),
+        ID_Flush => Flush,
+        ID_Branch_Taken => ID_Branch_Taken,
+        ID_Branch_Instruction => MUXOut_C_Branch, 
+        prediction => IF_prediction,
+        curr_pc => IF_curr_pc    
     );
+    
+    if_id_flush_detection: Flush <= ID_Branch_Taken xor IF_ID(36); -- TODO: add xor with the branch prediction bit
     
     pl_IF_ID: process(reset, clk) is 
     begin
         if reset = '1' then
-            IF_ID(31 downto 0) <= (others => '0');
-        elsif rising_edge(clk) and (IF_ID_WriteEn = '1') then
-            IF_ID(31 downto 16) <= IF_instruction;
-            IF_ID(15 downto 0) <= IF_pc_plus_one;
+            IF_ID(36 downto 0) <= (others => '0');
+        elsif rising_edge(clk) then
+            if Flush = '1' then
+                IF_ID(36 downto 0) <= (others => '0');    
+            elsif IF_ID_WriteEn = '1' then
+                IF_ID(36) <= IF_prediction;
+                IF_ID(35 downto 32) <= IF_curr_pc;
+                IF_ID(31 downto 16) <= IF_instruction;
+                IF_ID(15 downto 0) <= IF_pc_plus_one;
+            end if;
         end if;
     end process;    
     
@@ -405,8 +428,6 @@ begin
         sa => ID_EX(3),
         func => ID_EX(2 downto 0),
         ALUOp => ID_EX(77 downto 76),
-        branch_address => EX_branch_addr,
-        zero => EX_zero,
         ALURes => EX_ALU_out,
         EX_MEM_ALUOut => EX_MEM(34 downto 19),
         MEM_WB_ALUOut => WB_w_data, -- modified to work for load dependency as well
@@ -430,8 +451,8 @@ begin
             EX_MEM(59 downto 57) <= ID_EX(85 downto 83); -- RT address
             EX_MEM(56 downto 55) <= ID_EX(82 downto 81);
             EX_MEM(54 downto 52) <= ID_EX(80 downto 78);
-            EX_MEM(51 downto 36) <= EX_branch_addr;
-            EX_MEM(35) <= EX_zero;
+            EX_MEM(51 downto 36) <= x"0000"; -- TODO: remove later
+            EX_MEM(35) <= '0'; -- TODO: remove later
             EX_MEM(34 downto 19) <= EX_ALU_out;
             EX_MEM(18 downto 3) <= ID_EX(41 downto 26);
             EX_MEM(2 downto 0) <= EX_wr_addr;
@@ -444,11 +465,8 @@ begin
         MemRead => EX_MEM(54), 
         ALURes => EX_MEM(34 downto 19), 
         RD2 => EX_MEM(18 downto 3),
-        zero_detected => EX_MEM(35), 
-        branch_ins => EX_MEM(52),
         ALURes_out => MEM_ALU_out,
         MemData => MEM_data_out,
-        branch_taken => MEM_PCSrc,
         MEM_WB_RegWrite => MEM_WB(35),
         WB_BUF_RegWrite => WB_BUF(19),
         EX_MEM_Rt => EX_MEM(59 downto 57),

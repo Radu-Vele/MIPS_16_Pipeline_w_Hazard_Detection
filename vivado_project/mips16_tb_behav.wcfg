@@ -10,59 +10,51 @@
       </db_ref>
    </db_ref_list>
    <zoom_setting>
-      <ZoomStartTime time="177480fs"></ZoomStartTime>
-      <ZoomEndTime time="805981fs"></ZoomEndTime>
-      <Cursor1Time time="420000fs"></Cursor1Time>
+      <ZoomStartTime time="4500000fs"></ZoomStartTime>
+      <ZoomEndTime time="6178001fs"></ZoomEndTime>
+      <Cursor1Time time="410000fs"></Cursor1Time>
    </zoom_setting>
    <column_width_setting>
-      <NameColumnWidth column_width="206"></NameColumnWidth>
-      <ValueColumnWidth column_width="72"></ValueColumnWidth>
+      <NameColumnWidth column_width="214"></NameColumnWidth>
+      <ValueColumnWidth column_width="97"></ValueColumnWidth>
    </column_width_setting>
-   <WVObjectSize size="15" />
-   <wvobject fp_name="/mips16_tb/gen_clk" type="logic">
-      <obj_property name="ElementShortName">gen_clk</obj_property>
-      <obj_property name="ObjectShortName">gen_clk</obj_property>
+   <WVObjectSize size="11" />
+   <wvobject fp_name="/mips16_tb/MIPS_connect/ID_connect/reg_file_connection/clk100MHz" type="logic">
+      <obj_property name="ElementShortName">clk100MHz</obj_property>
+      <obj_property name="ObjectShortName">clk100MHz</obj_property>
    </wvobject>
-   <wvobject fp_name="/mips16_tb/gen_reset" type="logic">
-      <obj_property name="ElementShortName">gen_reset</obj_property>
-      <obj_property name="ObjectShortName">gen_reset</obj_property>
+   <wvobject fp_name="/mips16_tb/MIPS_connect/ID_connect/reg_file_connection/reg_write" type="logic">
+      <obj_property name="ElementShortName">reg_write</obj_property>
+      <obj_property name="ObjectShortName">reg_write</obj_property>
+   </wvobject>
+   <wvobject fp_name="/mips16_tb/MIPS_connect/IF_connect/curr_pc_content" type="array">
+      <obj_property name="ElementShortName">curr_pc_content[15:0]</obj_property>
+      <obj_property name="ObjectShortName">curr_pc_content[15:0]</obj_property>
+      <obj_property name="Radix">HEXRADIX</obj_property>
    </wvobject>
    <wvobject fp_name="/mips16_tb/MIPS_connect/IF_ID" type="array">
-      <obj_property name="ElementShortName">IF_ID[31:0]</obj_property>
-      <obj_property name="ObjectShortName">IF_ID[31:0]</obj_property>
-      <obj_property name="CustomSignalColor">#E0FFFF</obj_property>
-      <obj_property name="UseCustomSignalColor">true</obj_property>
+      <obj_property name="ElementShortName">IF_ID[36:0]</obj_property>
+      <obj_property name="ObjectShortName">IF_ID[36:0]</obj_property>
    </wvobject>
-   <wvobject fp_name="/mips16_tb/MIPS_connect/ID_EX" type="array">
-      <obj_property name="ElementShortName">ID_EX[88:0]</obj_property>
-      <obj_property name="ObjectShortName">ID_EX[88:0]</obj_property>
-      <obj_property name="CustomSignalColor">#E0FFFF</obj_property>
-      <obj_property name="UseCustomSignalColor">true</obj_property>
+   <wvobject fp_name="/mips16_tb/MIPS_connect/ID_connect/reg_file_connection/read_address1" type="array">
+      <obj_property name="ElementShortName">read_address1[2:0]</obj_property>
+      <obj_property name="ObjectShortName">read_address1[2:0]</obj_property>
    </wvobject>
-   <wvobject fp_name="/mips16_tb/MIPS_connect/EX_MEM" type="array">
-      <obj_property name="ElementShortName">EX_MEM[59:0]</obj_property>
-      <obj_property name="ObjectShortName">EX_MEM[59:0]</obj_property>
-      <obj_property name="CustomSignalColor">#E0FFFF</obj_property>
-      <obj_property name="UseCustomSignalColor">true</obj_property>
+   <wvobject fp_name="/mips16_tb/MIPS_connect/ID_connect/reg_file_connection/read_address2" type="array">
+      <obj_property name="ElementShortName">read_address2[2:0]</obj_property>
+      <obj_property name="ObjectShortName">read_address2[2:0]</obj_property>
    </wvobject>
-   <wvobject fp_name="/mips16_tb/MIPS_connect/MEM_WB" type="array">
-      <obj_property name="ElementShortName">MEM_WB[36:0]</obj_property>
-      <obj_property name="ObjectShortName">MEM_WB[36:0]</obj_property>
-      <obj_property name="CustomSignalColor">#E0FFFF</obj_property>
-      <obj_property name="UseCustomSignalColor">true</obj_property>
+   <wvobject fp_name="/mips16_tb/MIPS_connect/ID_connect/reg_file_connection/read_data1" type="array">
+      <obj_property name="ElementShortName">read_data1[15:0]</obj_property>
+      <obj_property name="ObjectShortName">read_data1[15:0]</obj_property>
    </wvobject>
-   <wvobject fp_name="/mips16_tb/MIPS_connect/WB_BUF" type="array">
-      <obj_property name="ElementShortName">WB_BUF[19:0]</obj_property>
-      <obj_property name="ObjectShortName">WB_BUF[19:0]</obj_property>
-      <obj_property name="CustomSignalColor">#E0FFFF</obj_property>
-      <obj_property name="UseCustomSignalColor">true</obj_property>
+   <wvobject fp_name="/mips16_tb/MIPS_connect/ID_connect/reg_file_connection/read_data2" type="array">
+      <obj_property name="ElementShortName">read_data2[15:0]</obj_property>
+      <obj_property name="ObjectShortName">read_data2[15:0]</obj_property>
    </wvobject>
    <wvobject fp_name="/mips16_tb/MIPS_connect/ID_connect/reg_file_connection/curr_content" type="array">
       <obj_property name="ElementShortName">curr_content[0:7][15:0]</obj_property>
       <obj_property name="ObjectShortName">curr_content[0:7][15:0]</obj_property>
-      <obj_property name="CustomSignalColor">#008000</obj_property>
-      <obj_property name="UseCustomSignalColor">true</obj_property>
-      <obj_property name="Radix">HEXRADIX</obj_property>
       <obj_property name="isExpanded"></obj_property>
       <wvobject fp_name="/mips16_tb/MIPS_connect/ID_connect/reg_file_connection/curr_content[0]" type="array">
          <obj_property name="ElementShortName">[0][15:0]</obj_property>
@@ -104,69 +96,13 @@
          <obj_property name="ObjectShortName">[7][15:0]</obj_property>
          <obj_property name="Radix">HEXRADIX</obj_property>
       </wvobject>
-      <wvobject fp_name="/mips16_tb/MIPS_connect/ID_connect/reg_file_connection/curr_content[0]" type="array">
-         <obj_property name="ElementShortName">[0][15:0]</obj_property>
-         <obj_property name="ObjectShortName">[0][15:0]</obj_property>
-      </wvobject>
-      <wvobject fp_name="/mips16_tb/MIPS_connect/ID_connect/reg_file_connection/curr_content[1]" type="array">
-         <obj_property name="ElementShortName">[1][15:0]</obj_property>
-         <obj_property name="ObjectShortName">[1][15:0]</obj_property>
-      </wvobject>
-      <wvobject fp_name="/mips16_tb/MIPS_connect/ID_connect/reg_file_connection/curr_content[2]" type="array">
-         <obj_property name="ElementShortName">[2][15:0]</obj_property>
-         <obj_property name="ObjectShortName">[2][15:0]</obj_property>
-      </wvobject>
-      <wvobject fp_name="/mips16_tb/MIPS_connect/ID_connect/reg_file_connection/curr_content[3]" type="array">
-         <obj_property name="ElementShortName">[3][15:0]</obj_property>
-         <obj_property name="ObjectShortName">[3][15:0]</obj_property>
-      </wvobject>
-      <wvobject fp_name="/mips16_tb/MIPS_connect/ID_connect/reg_file_connection/curr_content[4]" type="array">
-         <obj_property name="ElementShortName">[4][15:0]</obj_property>
-         <obj_property name="ObjectShortName">[4][15:0]</obj_property>
-      </wvobject>
-      <wvobject fp_name="/mips16_tb/MIPS_connect/ID_connect/reg_file_connection/curr_content[5]" type="array">
-         <obj_property name="ElementShortName">[5][15:0]</obj_property>
-         <obj_property name="ObjectShortName">[5][15:0]</obj_property>
-      </wvobject>
-      <wvobject fp_name="/mips16_tb/MIPS_connect/ID_connect/reg_file_connection/curr_content[6]" type="array">
-         <obj_property name="ElementShortName">[6][15:0]</obj_property>
-         <obj_property name="ObjectShortName">[6][15:0]</obj_property>
-      </wvobject>
-      <wvobject fp_name="/mips16_tb/MIPS_connect/ID_connect/reg_file_connection/curr_content[7]" type="array">
-         <obj_property name="ElementShortName">[7][15:0]</obj_property>
-         <obj_property name="ObjectShortName">[7][15:0]</obj_property>
-      </wvobject>
    </wvobject>
-   <wvobject fp_name="/mips16_tb/MIPS_connect/MEM_connect/curr_content" type="array">
-      <obj_property name="ElementShortName">curr_content[0:255][15:0]</obj_property>
-      <obj_property name="ObjectShortName">curr_content[0:255][15:0]</obj_property>
-      <obj_property name="CustomSignalColor">#800080</obj_property>
-      <obj_property name="UseCustomSignalColor">true</obj_property>
-      <obj_property name="Radix">HEXRADIX</obj_property>
+   <wvobject fp_name="/mips16_tb/MIPS_connect/ID_connect/reg_file_connection/write_data" type="array">
+      <obj_property name="ElementShortName">write_data[15:0]</obj_property>
+      <obj_property name="ObjectShortName">write_data[15:0]</obj_property>
    </wvobject>
-   <wvobject fp_name="/mips16_tb/MIPS_connect/ID_connect/load_hazard_detection/IF_ID_WriteEn" type="logic">
-      <obj_property name="ElementShortName">IF_ID_WriteEn</obj_property>
-      <obj_property name="ObjectShortName">IF_ID_WriteEn</obj_property>
-   </wvobject>
-   <wvobject fp_name="/mips16_tb/MIPS_connect/ID_connect/load_hazard_detection/Ctrl_Sel" type="logic">
-      <obj_property name="ElementShortName">Ctrl_Sel</obj_property>
-      <obj_property name="ObjectShortName">Ctrl_Sel</obj_property>
-   </wvobject>
-   <wvobject fp_name="/mips16_tb/MIPS_connect/ID_connect/load_hazard_detection/PC_Enable" type="logic">
-      <obj_property name="ElementShortName">PC_Enable</obj_property>
-      <obj_property name="ObjectShortName">PC_Enable</obj_property>
-   </wvobject>
-   <wvobject fp_name="/mips16_tb/MIPS_connect/IF_connect/curr_pc_content" type="array">
-      <obj_property name="ElementShortName">curr_pc_content[15:0]</obj_property>
-      <obj_property name="ObjectShortName">curr_pc_content[15:0]</obj_property>
-      <obj_property name="Radix">HEXRADIX</obj_property>
-   </wvobject>
-   <wvobject fp_name="/mips16_tb/MIPS_connect/ID_connect/Branch_Address" type="array">
-      <obj_property name="ElementShortName">Branch_Address[15:0]</obj_property>
-      <obj_property name="ObjectShortName">Branch_Address[15:0]</obj_property>
-   </wvobject>
-   <wvobject fp_name="/mips16_tb/MIPS_connect/ID_connect/Branch_Taken" type="logic">
-      <obj_property name="ElementShortName">Branch_Taken</obj_property>
-      <obj_property name="ObjectShortName">Branch_Taken</obj_property>
+   <wvobject fp_name="/mips16_tb/MIPS_connect/ID_connect/reg_file_connection/write_address" type="array">
+      <obj_property name="ElementShortName">write_address[2:0]</obj_property>
+      <obj_property name="ObjectShortName">write_address[2:0]</obj_property>
    </wvobject>
 </wave_config>

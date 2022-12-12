@@ -30,11 +30,8 @@ entity mem_unit is
         MemRead: in std_logic;
         ALURes: in std_logic_vector (15 downto 0);
         RD2: in std_logic_vector (15 downto 0);
-        zero_detected: in std_logic; 
-        branch_ins: in std_logic;
         ALURes_out: out std_logic_vector (15 downto 0);
         MemData: out std_logic_vector (15 downto 0);
-        branch_taken: out std_logic;
         -- MEM FWD Add-on
         MEM_WB_RegWrite: in std_logic;
         WB_BUF_RegWrite: in std_logic;
@@ -112,9 +109,5 @@ begin
     end process;
     
     ALURes_out <= ALURes;
-
-    branch_taken <= 
-        '1' when (zero_detected = '1' and branch_ins = '1')
-        else '0';
 
 end Behavioral;

@@ -2,8 +2,8 @@
 # Webtalk v2020.1 (64-bit)
 # SW Build 2902540 on Wed May 27 19:54:49 MDT 2020
 # IP Build 2902112 on Wed May 27 22:43:36 MDT 2020
-# Start of session at: Mon Dec 12 21:22:55 2022
-# Process ID: 10712
+# Start of session at: Mon Dec 12 21:19:40 2022
+# Process ID: 16036
 # Current directory: C:/Facultate/An_3/An_3_Sem_1/Structure_of_Computer_Systems/Project/Hazard_Detection_Unit/vivado_project/mips16_pipeline_w_hazard_detection.sim/sim_1/behav/xsim
 # Command line: wbtcv.exe -mode batch -source C:/Facultate/An_3/An_3_Sem_1/Structure_of_Computer_Systems/Project/Hazard_Detection_Unit/vivado_project/mips16_pipeline_w_hazard_detection.sim/sim_1/behav/xsim/xsim.dir/IF_bht_tb_behav/webtalk/xsim_webtalk.tcl -notrace
 # Log file: C:/Facultate/An_3/An_3_Sem_1/Structure_of_Computer_Systems/Project/Hazard_Detection_Unit/vivado_project/mips16_pipeline_w_hazard_detection.sim/sim_1/behav/xsim/webtalk.log

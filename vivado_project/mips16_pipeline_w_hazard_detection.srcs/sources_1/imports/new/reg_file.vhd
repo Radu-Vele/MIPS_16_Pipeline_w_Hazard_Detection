@@ -46,10 +46,10 @@ architecture Behavioral of reg_file is
 	type reg_content is array(0 to 7) of STD_LOGIC_VECTOR(15 downto 0); --8x16 size
 
 	signal curr_content: reg_content := (
-		x"0DDD",
-		x"0003",
-		x"0002",
-		x"0005",
+		x"0000",
+		x"0000",
+		x"0001",
+		x"0000",
 		x"0001",
 		x"0002",
 		x"0002",
@@ -69,11 +69,11 @@ begin
 	       read_data1 <= curr_content(to_integer(unsigned(read_address1)));
 	       read_data2 <= curr_content(to_integer(unsigned(read_address2)));
 	       
-	       if read_address1 = write_address then
+	       if read_address1 = write_address and reg_write = '1' then
 	           read_data1 <= write_data;
 	       end if;
 	       
-	       if read_address2 = write_address then
+	       if read_address2 = write_address and reg_write = '1' then
 	           read_data2 <= write_data;
 	       end if;      
 	   end if;    

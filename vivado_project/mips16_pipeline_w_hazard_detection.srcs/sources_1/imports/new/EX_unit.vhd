@@ -35,8 +35,6 @@ entity EX_unit is
         sa: in std_logic;
         func: in std_logic_vector(2 downto 0);
         ALUOp: in std_logic_vector(1 downto 0);
-        branch_address: out std_logic_vector(15 downto 0);
-        zero: out std_logic;
         ALURes: out std_logic_vector (15 downto 0);
         -- *** FWD Unit Add-on
         EX_MEM_ALUOut: in std_logic_vector(15 downto 0);
@@ -74,8 +72,6 @@ architecture Behavioral of EX_unit is
     signal ALU_input_A: std_logic_vector (15 downto 0);
     signal ALU_input_B: std_logic_vector (15 downto 0);
 begin
-
-    branch_adder: branch_address <= next_pc + ext_imm; --no shifting required
     
     hazard_detection: EX_fwd_unit port map (
         EX_MEM_RegWrite => EX_MEM_RegWrite,
@@ -126,7 +122,6 @@ begin
         else
             case(ALUOp) is 
                 when "00" => ALUCtrl <= "001"; -- addition
-                when "01" => ALUCtrl <= "010"; -- subtraction for branch
                 when "10" => ALUCtrl <= "010"; -- subtraction for subi
                 when others => ALUCtrl <= "000";
             end case;
@@ -158,7 +153,5 @@ begin
     end process;
 
     --outputs assignment
-    ALURes <= tmp_res;
-    zero <= '1' when (tmp_res = x"0000") else '0';    
-    
+    ALURes <= tmp_res;    
 end Behavioral;
