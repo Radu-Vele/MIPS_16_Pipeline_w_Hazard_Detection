@@ -10,15 +10,15 @@
       </db_ref>
    </db_ref_list>
    <zoom_setting>
-      <ZoomStartTime time="0fs"></ZoomStartTime>
-      <ZoomEndTime time="621001fs"></ZoomEndTime>
-      <Cursor1Time time="260000fs"></Cursor1Time>
+      <ZoomStartTime time="177480fs"></ZoomStartTime>
+      <ZoomEndTime time="805981fs"></ZoomEndTime>
+      <Cursor1Time time="420000fs"></Cursor1Time>
    </zoom_setting>
    <column_width_setting>
-      <NameColumnWidth column_width="215"></NameColumnWidth>
-      <ValueColumnWidth column_width="78"></ValueColumnWidth>
+      <NameColumnWidth column_width="206"></NameColumnWidth>
+      <ValueColumnWidth column_width="72"></ValueColumnWidth>
    </column_width_setting>
-   <WVObjectSize size="12" />
+   <WVObjectSize size="15" />
    <wvobject fp_name="/mips16_tb/gen_clk" type="logic">
       <obj_property name="ElementShortName">gen_clk</obj_property>
       <obj_property name="ObjectShortName">gen_clk</obj_property>
@@ -62,8 +62,8 @@
       <obj_property name="ObjectShortName">curr_content[0:7][15:0]</obj_property>
       <obj_property name="CustomSignalColor">#008000</obj_property>
       <obj_property name="UseCustomSignalColor">true</obj_property>
-      <obj_property name="isExpanded"></obj_property>
       <obj_property name="Radix">HEXRADIX</obj_property>
+      <obj_property name="isExpanded"></obj_property>
       <wvobject fp_name="/mips16_tb/MIPS_connect/ID_connect/reg_file_connection/curr_content[0]" type="array">
          <obj_property name="ElementShortName">[0][15:0]</obj_property>
          <obj_property name="ObjectShortName">[0][15:0]</obj_property>
@@ -155,5 +155,18 @@
    <wvobject fp_name="/mips16_tb/MIPS_connect/ID_connect/load_hazard_detection/PC_Enable" type="logic">
       <obj_property name="ElementShortName">PC_Enable</obj_property>
       <obj_property name="ObjectShortName">PC_Enable</obj_property>
+   </wvobject>
+   <wvobject fp_name="/mips16_tb/MIPS_connect/IF_connect/curr_pc_content" type="array">
+      <obj_property name="ElementShortName">curr_pc_content[15:0]</obj_property>
+      <obj_property name="ObjectShortName">curr_pc_content[15:0]</obj_property>
+      <obj_property name="Radix">HEXRADIX</obj_property>
+   </wvobject>
+   <wvobject fp_name="/mips16_tb/MIPS_connect/ID_connect/Branch_Address" type="array">
+      <obj_property name="ElementShortName">Branch_Address[15:0]</obj_property>
+      <obj_property name="ObjectShortName">Branch_Address[15:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/mips16_tb/MIPS_connect/ID_connect/Branch_Taken" type="logic">
+      <obj_property name="ElementShortName">Branch_Taken</obj_property>
+      <obj_property name="ObjectShortName">Branch_Taken</obj_property>
    </wvobject>
 </wave_config>

@@ -22,6 +22,7 @@
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 use IEEE.NUMERIC_STD.ALL;
+use IEEE.STD_LOGIC_UNSIGNED.ALL;
 
 entity ID_unit is
     Port ( 
@@ -38,12 +39,17 @@ entity ID_unit is
         sa: out std_logic;
         write_address_1: out std_logic_vector(2 downto 0);
         write_address_2: out std_logic_vector(2 downto 0);
-        -- **HDU Add-on
+        --*** HDU Add-on
         ID_EX_MemRead: in std_logic;
         ID_EX_Rt: in std_logic_vector(2 downto 0);
         IF_ID_WriteEn: out std_logic;
         Ctrl_Sel: out std_logic;
-        PC_Enable: out std_logic
+        PC_Enable: out std_logic;
+        --*** BranchDet Add-on
+        pc_nxt: in std_logic_vector(15 downto 0);
+        Branch_instruction: in std_logic;
+        Branch_Taken: out std_logic;
+        Branch_Address: out std_logic_vector(15 downto 0)
     );
 end ID_unit;
 
@@ -72,7 +78,10 @@ architecture Behavioral of ID_unit is
         );
     end component;    
     
-    signal mux_outp: std_logic_vector(2 downto 0);    
+    signal mux_outp: std_logic_vector(2 downto 0);  
+    signal temp_rd1: std_logic_vector(15 downto 0);  
+    signal temp_rd2: std_logic_vector(15 downto 0);  
+    signal temp_ext_imm: std_logic_vector(15 downto 0);  
 begin
     
     write_address_1 <= instruction(9 downto 7);
@@ -85,13 +94,22 @@ begin
 		write_data => wd,
 		reg_write => RegWrite,
 		clk100MHz => clk100MHz,
-		read_data1 => rd1,
-		read_data2 => rd2);
-   
-    extender_unit: ext_imm <= x"00" & '0' & instruction(6 downto 0) when ExtOp = '0' else
+		read_data1 => temp_rd1,
+		read_data2 => temp_rd2);
+    
+    rd1 <= temp_rd1;
+    rd2 <= temp_rd2;
+    
+    equality_detector: Branch_Taken <= '1' when (temp_rd1 = temp_rd2 and Branch_instruction = '1') 
+        else '0';
+        
+    branch_addr_adder: Branch_Address <= temp_ext_imm + pc_nxt;
+    
+    extender_unit: temp_ext_imm <= x"00" & '0' & instruction(6 downto 0) when ExtOp = '0' else
                x"FF" & '1' & instruction(6 downto 0) when instruction(6) = '1' else
                x"00" & '0'& instruction(6 downto 0);
-     
+    
+    ext_imm <= temp_ext_imm; 
     func <= instruction(2 downto 0);
     sa <= instruction(3);
     

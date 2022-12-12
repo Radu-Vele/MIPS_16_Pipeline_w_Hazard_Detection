@@ -46,10 +46,10 @@ architecture Behavioral of reg_file is
 	type reg_content is array(0 to 7) of STD_LOGIC_VECTOR(15 downto 0); --8x16 size
 
 	signal curr_content: reg_content := (
-		x"0001",
+		x"0DDD",
 		x"0003",
 		x"0002",
-		x"0000",
+		x"0005",
 		x"0001",
 		x"0002",
 		x"0002",

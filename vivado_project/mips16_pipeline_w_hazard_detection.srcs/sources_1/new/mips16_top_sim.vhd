@@ -71,7 +71,12 @@ architecture Behavioral of mips16_top_sim is
             ID_EX_Rt: in std_logic_vector(2 downto 0);
             IF_ID_WriteEn: out std_logic;
             Ctrl_Sel: out std_logic;
-            PC_Enable: out std_logic
+            PC_Enable: out std_logic;
+            --*** BranchDet Add-on
+            pc_nxt: in std_logic_vector(15 downto 0);
+            Branch_instruction: in std_logic;
+            Branch_Taken: out std_logic;
+            Branch_Address: out std_logic_vector(15 downto 0)
         );
     end component;
     
@@ -177,6 +182,8 @@ architecture Behavioral of mips16_top_sim is
     signal ID_rd1: std_logic_vector(15 downto 0); 
     signal ID_rd2: std_logic_vector(15 downto 0);
     signal ID_ext_imm: std_logic_vector(15 downto 0);
+    signal ID_Branch_Taken: std_logic;
+    signal ID_Branch_Address: std_logic_vector(15 downto 0);
     signal ID_sa: std_logic;
     signal ID_func: std_logic_vector(2 downto 0); 
     signal ID_wr_addr1: std_logic_vector(2 downto 0);
@@ -273,9 +280,9 @@ begin
     IF_connect: IF_unit port map (
         clk100MHz => clk,
         jump_addr => ID_ext_imm,
-        branch_addr => EX_MEM(51 downto 36),
+        branch_addr => ID_Branch_Address,
         jump_ctrl => MUXOut_C_Jump,
-        PCsrc_ctrl => MEM_PCSrc,
+        PCsrc_ctrl => ID_Branch_Taken,
         reset_pc => reset,
         enable_pc => PC_Enable, -- TODO: If you want to test on the board replace with an and between board button and PC_Enable
         instruction => IF_instruction,
@@ -310,7 +317,11 @@ begin
         ID_EX_Rt => ID_EX(85 downto 83),
         IF_ID_WriteEn => IF_ID_WriteEn,
         Ctrl_Sel => Ctrl_Sel,
-        PC_Enable => PC_Enable
+        PC_Enable => PC_Enable,
+        pc_nxt => IF_ID(15 downto 0),
+        Branch_instruction => MUXOut_C_Branch,
+        Branch_Taken => ID_Branch_Taken,
+        Branch_Address => ID_Branch_Address
     );
     
     CU_connect: ctrl_unit port map(
@@ -430,7 +441,7 @@ begin
     MEM_connect: MEM_unit port map(
         clk100MHz => clk,
         MemWrite => EX_MEM(53),
-        MemRead => EX_MEM(54), --TODO add control signal!
+        MemRead => EX_MEM(54), 
         ALURes => EX_MEM(34 downto 19), 
         RD2 => EX_MEM(18 downto 3),
         zero_detected => EX_MEM(35), 
