@@ -65,7 +65,13 @@ architecture Behavioral of mips16_top_sim is
             func: out std_logic_vector(2 downto 0);
             sa: out std_logic;
             write_address_1: out std_logic_vector(2 downto 0);
-            write_address_2: out std_logic_vector(2 downto 0)
+            write_address_2: out std_logic_vector(2 downto 0);
+            -- *** HDU Add-on
+            ID_EX_MemRead: in std_logic;
+            ID_EX_Rt: in std_logic_vector(2 downto 0);
+            IF_ID_WriteEn: out std_logic;
+            Ctrl_Sel: out std_logic;
+            PC_Enable: out std_logic
         );
     end component;
     
@@ -148,6 +154,21 @@ architecture Behavioral of mips16_top_sim is
     signal C_MemWriteEnable: std_logic;
     signal C_MemToReg: std_logic;
     signal C_ALUOp: std_logic_vector(1 downto 0);    
+
+    --control unit signal after flush MUX
+    signal MUXOut_C_RegWrite: std_logic;
+    signal MUXOut_C_RegWriteValid: std_logic; -- validated with an MPG output
+    signal MUXOut_C_RegDst: std_logic;
+    signal MUXOut_C_ExtOp: std_logic;
+    signal MUXOut_C_ALUSrc: std_logic;
+    signal MUXOut_C_Branch: std_logic;
+    signal MUXOut_C_Jump: std_logic;
+    signal MUXOut_C_MemRead: std_logic;
+    signal MUXOut_C_MemWrite: std_logic;
+    signal MUXOut_C_MemWriteEnable: std_logic;
+    signal MUXOut_C_MemToReg: std_logic;
+    signal MUXOut_C_ALUOp: std_logic_vector(1 downto 0);    
+    
     --outputs of IF
     signal IF_instruction: std_logic_vector(15 downto 0);
     signal IF_pc_plus_one: std_logic_vector(15 downto 0);
@@ -160,6 +181,9 @@ architecture Behavioral of mips16_top_sim is
     signal ID_func: std_logic_vector(2 downto 0); 
     signal ID_wr_addr1: std_logic_vector(2 downto 0);
     signal ID_wr_addr2: std_logic_vector(2 downto 0);
+    signal IF_ID_WriteEn: std_logic;
+    signal Ctrl_Sel: std_logic;
+    signal PC_Enable: std_logic;
     
     --outputs of EX
     signal EX_branch_addr: std_logic_vector(15 downto 0);
@@ -250,10 +274,10 @@ begin
         clk100MHz => clk,
         jump_addr => ID_ext_imm,
         branch_addr => EX_MEM(51 downto 36),
-        jump_ctrl => C_Jump,
+        jump_ctrl => MUXOut_C_Jump,
         PCsrc_ctrl => MEM_PCSrc,
         reset_pc => reset,
-        enable_pc => en_pc, 
+        enable_pc => PC_Enable, -- TODO: If you want to test on the board replace with an and between board button and PC_Enable
         instruction => IF_instruction,
         pc_plus_one  => IF_pc_plus_one
     );
@@ -262,7 +286,7 @@ begin
     begin
         if reset = '1' then
             IF_ID(31 downto 0) <= (others => '0');
-        elsif rising_edge(clk) then
+        elsif rising_edge(clk) and (IF_ID_WriteEn = '1') then
             IF_ID(31 downto 16) <= IF_instruction;
             IF_ID(15 downto 0) <= IF_pc_plus_one;
         end if;
@@ -274,14 +298,19 @@ begin
         wd => WB_w_data,
         RegWrite => MEM_WB(35),
         RegDstAddress => MEM_WB(34 downto 32), 
-        ExtOp => C_ExtOp,
+        ExtOp => MUXOut_C_ExtOp,
         rd1 => ID_rd1,
         rd2 => ID_rd2,
         ext_imm => ID_ext_imm,
         func => ID_func,
         sa => ID_sa,
         write_address_1 => ID_wr_addr1,
-        write_address_2 => ID_wr_addr2
+        write_address_2 => ID_wr_addr2,
+        ID_EX_MemRead => ID_EX(80),
+        ID_EX_Rt => ID_EX(85 downto 83),
+        IF_ID_WriteEn => IF_ID_WriteEn,
+        Ctrl_Sel => Ctrl_Sel,
+        PC_Enable => PC_Enable
     );
     
     CU_connect: ctrl_unit port map(
@@ -299,6 +328,37 @@ begin
         RegWrite => C_RegWrite
     );
     
+    CU_flush_MUX: process (Ctrl_Sel, C_RegDst, C_ExtOp, C_ALUSrc, C_Branch, C_Jump, C_ALUOp, C_MemRead, C_MemWrite, C_MemToReg, C_RegWrite) is
+    begin
+        if Ctrl_Sel = '0' then
+            MUXOut_C_RegWrite <= '0';
+            MUXOut_C_RegWriteValid <= '0';
+            MUXOut_C_RegDst <= '0';
+            MUXOut_C_ExtOp <= '0';
+            MUXOut_C_ALUSrc <= '0';
+            MUXOut_C_Branch <= '0';
+            MUXOut_C_Jump <= '0';
+            MUXOut_C_MemRead <= '0';
+            MUXOut_C_MemWrite <= '0';
+            MUXOut_C_MemWriteEnable <= '0';
+            MUXOut_C_MemToReg <= '0';
+            MUXOut_C_ALUOp <= "11"; -- no operation
+        else
+            MUXOut_C_RegWrite <= C_RegWrite;
+            MUXOut_C_RegWriteValid <= C_RegWriteValid;
+            MUXOut_C_RegDst <= C_RegDst;
+            MUXOut_C_ExtOp <= C_ExtOp;
+            MUXOut_C_ALUSrc <= C_ALUSrc;
+            MUXOut_C_Branch <= C_Branch;
+            MUXOut_C_Jump <= C_Jump;
+            MUXOut_C_MemRead <= C_MemRead;
+            MUXOut_C_MemWrite <= C_MemWrite;
+            MUXOut_C_MemWriteEnable <= C_MemWriteEnable;
+            MUXOut_C_MemToReg <= C_MemToReg;
+            MUXOut_C_ALUOp <= C_ALUOp;
+        end if;
+    end process;
+    
     pl_ID_EX: process(reset, clk) is
     begin
         if reset = '1' then
@@ -306,14 +366,14 @@ begin
         elsif rising_edge(clk) then
             ID_EX(88 downto 86)<= IF_ID(28 downto 26); -- RS
             ID_EX(85 downto 83) <= IF_ID(25 downto 23); -- RT
-            ID_EX(82) <= C_MemToReg;
-            ID_EX(81) <= C_RegWrite;
-            ID_EX(80) <= C_MemRead;
-            ID_EX(79) <= C_MemWrite;
-            ID_EX(78) <= C_Branch;
-            ID_EX(77 downto 76) <= C_ALUOp;
-            ID_EX(75) <= C_ALUSrc;
-            ID_EX(74) <= C_RegDst;
+            ID_EX(82) <= MUXOut_C_MemToReg;
+            ID_EX(81) <= MUXOut_C_RegWrite;
+            ID_EX(80) <= MUXOut_C_MemRead;
+            ID_EX(79) <= MUXOut_C_MemWrite;
+            ID_EX(78) <= MUXOut_C_Branch;
+            ID_EX(77 downto 76) <= MUXOut_C_ALUOp;
+            ID_EX(75) <= MUXOut_C_ALUSrc;
+            ID_EX(74) <= MUXOut_C_RegDst;
             ID_EX(73 downto 58) <= IF_ID(15 downto 0);
             ID_EX(57 downto 42) <= ID_rd1;
             ID_EX(41 downto 26) <= ID_rd2;
@@ -338,7 +398,7 @@ begin
         zero => EX_zero,
         ALURes => EX_ALU_out,
         EX_MEM_ALUOut => EX_MEM(34 downto 19),
-        MEM_WB_ALUOut => MEM_WB(15 downto 0),
+        MEM_WB_ALUOut => WB_w_data, -- modified to work for load dependency as well
         EX_MEM_RegWrite => EX_MEM(55),
         MEM_WB_RegWrite => MEM_WB(35),
         EX_MEM_RegDst => EX_MEM(2 downto 0),

@@ -37,14 +37,17 @@ entity ID_unit is
         func: out std_logic_vector(2 downto 0);
         sa: out std_logic;
         write_address_1: out std_logic_vector(2 downto 0);
-        write_address_2: out std_logic_vector(2 downto 0)
+        write_address_2: out std_logic_vector(2 downto 0);
+        -- **HDU Add-on
+        ID_EX_MemRead: in std_logic;
+        ID_EX_Rt: in std_logic_vector(2 downto 0);
+        IF_ID_WriteEn: out std_logic;
+        Ctrl_Sel: out std_logic;
+        PC_Enable: out std_logic
     );
 end ID_unit;
 
 architecture Behavioral of ID_unit is
-
-    signal mux_outp: std_logic_vector(2 downto 0);
-
     component reg_file is
         port (
             read_address2: in STD_LOGIC_VECTOR(2 downto 0);
@@ -57,6 +60,19 @@ architecture Behavioral of ID_unit is
             read_data2: out STD_LOGIC_VECTOR(15 downto 0));
     end component;
     
+    component hazard_det_unit is
+        Port (
+            ID_Rs: in std_logic_vector(2 downto 0); 
+            ID_Rt: in std_logic_vector(2 downto 0); 
+            ID_EX_Rt: in std_logic_vector(2 downto 0);
+            ID_EX_MemRead: in std_logic; 
+            IF_ID_WriteEn: out std_logic;
+            Ctrl_Sel: out std_logic;
+            PC_Enable: out std_logic
+        );
+    end component;    
+    
+    signal mux_outp: std_logic_vector(2 downto 0);    
 begin
     
     write_address_1 <= instruction(9 downto 7);
@@ -78,5 +94,15 @@ begin
      
     func <= instruction(2 downto 0);
     sa <= instruction(3);
+    
+    load_hazard_detection: hazard_det_unit port map (
+        ID_Rs => instruction(12 downto 10), 
+        ID_Rt => instruction(9 downto 7),
+        ID_EX_Rt => ID_EX_Rt,
+        ID_EX_MemRead => ID_EX_MemRead,
+        IF_ID_WriteEn => IF_ID_WriteEn,
+        Ctrl_Sel => Ctrl_Sel,
+        PC_Enable => PC_Enable
+    );
     
 end Behavioral;

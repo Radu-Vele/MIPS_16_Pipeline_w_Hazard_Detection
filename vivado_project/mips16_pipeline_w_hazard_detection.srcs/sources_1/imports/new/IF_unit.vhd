@@ -65,12 +65,9 @@ architecture Behavioral of IF_unit is
     --------------------------------------------
     
     signal curr_rom: rom_content := ( 
--- Data Hazard RAW in EX stage
-      B"000_001_011_011_0_001", -- add $3 = $1 + $3 -- no dependency
-      B"000_001_010_011_0_001", -- add $3 = $1 + $2 -- no dependency
-      B"011_011_011_0000001", -- store MEM($3 + '1') = $3 -- depends on the previous two (but latest is taken into account)
-      B"011_011_011_0000010", -- store MEM($3 + '2') = $3 -- depends on the i. before the previous one
-      B"011_011_011_0000011", -- store MEM($3 + '3') = $3 -- no dependency
+-- Load Data Hazard
+      B"010_001_011_0000001",-- load $3 <= MEM($1 + '1')
+      B"000_011_100_010_0_001",-- add $2 <= $3 + $4
       others => x"0000"
     );
     
