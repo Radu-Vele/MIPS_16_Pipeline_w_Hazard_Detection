@@ -38,8 +38,10 @@ entity IF_unit is
         pc_plus_one: out std_logic_vector(15 downto 0);
         -- *** BHT Add-on
         ID_prv_pc: in std_logic_vector(3 downto 0);
+        ID_pc_plus_one: in std_logic_vector(15 downto 0);
         ID_Flush: in std_logic;
         ID_Branch_Taken: in std_logic;
+        ID_Pred: in std_logic;
         ID_Branch_Instruction: in std_logic;
         prediction: out std_logic;
         curr_pc: out std_logic_vector(3 downto 0)
@@ -70,6 +72,8 @@ architecture Behavioral of IF_unit is
     signal mux0_out: std_logic_vector(15 downto 0);
     signal predicted_target: std_logic_vector(15 downto 0);
     signal MSB_Pred: std_logic;
+    signal ID_Pred_ID_Br_Taken: std_logic_vector(1 downto 0);
+    
     
     type rom_content is array(0 to 255) of std_logic_vector(15 downto 0);
     
@@ -94,12 +98,14 @@ architecture Behavioral of IF_unit is
     
     signal curr_rom: rom_content := ( 
 -- Dynamic branch prediction
-    -- infinite fibonnaci
-      B"000_001_010_011_0_001", -- 0: add $3 = $1 + $2
-      B"000_010_000_001_0_001", -- 1: add $1 = $2 + $0
-      B"000_011_000_010_0_001", -- 2: add $2  = $3 + $0
-      B"100_000_000_1111100", -- 3: beq $0 $0 -4
-      B"000_001_010_011_0_001", 
+    -- 5 fibonnaci numbers to be computed 2 -> 5 -> 7 -> 12 -> 19
+      B"011_000_000_0000000",-- 0: store MEM[0] <= $0 - constant 0
+      B"010_000_100_0000000",-- 1: load $4 MEM[0] = 0
+      B"010_000_101_0000001",-- 2: load $5 MEM[1] = 5
+      B"001_100_100_0000001", -- 3: addi $4 = $4 + 1 -- counter
+      B"110_100_101_1111011", -- 7: bneq $4 $5 -5
+      B"011_000_010_0000110", -- 8: store MEM[6] <- $2
+      B"111_0000000000000",-- 9: Jump 0
       others => x"0000"
     );
     
@@ -131,11 +137,26 @@ begin
    
     -- next address computation
     adder: adder_out <= curr_pc_content + "1";
+    
     pc_plus_one <= adder_out; -- needed for ID (branch)
     
     mux_bht: mux0_out <= predicted_target when MSB_Pred = '1' else adder_out;
     
-    mux1: mux1_out <= branch_addr when (ID_Flush = '1') else mux0_out;
+    --mux1: mux1_out <= branch_addr when (ID_Flush = '1') else mux0_out;
+    
+    ID_Pred_ID_Br_Taken <= ID_pred & ID_Branch_Taken;
+    
+    mux1: process (branch_addr, ID_Flush, ID_Pred_ID_Br_Taken, mux0_out) is
+    begin
+        case ID_Pred_ID_Br_Taken is 
+            when "00" => mux1_out <= mux0_out;
+            when "01" => mux1_out <= branch_addr;
+            when "10" => mux1_out <= ID_pc_plus_one;
+            when "11" => mux1_out <= mux0_out;
+            when others => mux1_out <= adder_out;
+        end case;
+    end process;
+    
     mux2: nxt_pc <= jump_addr when (jump_ctrl = '1') else mux1_out;  
     
     prediction <= MSB_Pred;

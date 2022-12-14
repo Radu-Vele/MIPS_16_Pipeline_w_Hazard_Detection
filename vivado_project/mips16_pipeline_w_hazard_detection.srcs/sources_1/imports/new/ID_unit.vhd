@@ -81,7 +81,7 @@ architecture Behavioral of ID_unit is
     signal mux_outp: std_logic_vector(2 downto 0);  
     signal temp_rd1: std_logic_vector(15 downto 0);  
     signal temp_rd2: std_logic_vector(15 downto 0);  
-    signal temp_ext_imm: std_logic_vector(15 downto 0);  
+    signal temp_ext_imm: std_logic_vector(15 downto 0); 
 begin
     
     write_address_1 <= instruction(9 downto 7);
@@ -100,9 +100,21 @@ begin
     rd1 <= temp_rd1;
     rd2 <= temp_rd2;
     
-    equality_detector: Branch_Taken <= '1' when (temp_rd1 = temp_rd2 and Branch_instruction = '1') 
-        else '0';
-        
+    branch_taken_generation: process(temp_rd1, temp_rd2, instruction, Branch_instruction) is 
+    begin        
+        if Branch_instruction = '1' then
+            if (temp_rd1 = temp_rd2) and instruction(15 downto 13) = "100" then --beq
+                Branch_Taken <= '1';
+            elsif (not (temp_rd1 = temp_rd2)) and instruction(15 downto 13) = "110" then --bneq
+                Branch_Taken <= '1';
+            else
+                Branch_Taken <= '0';
+            end if;
+        else 
+            Branch_Taken <= '0';
+        end if;
+    end process;
+    
     branch_addr_adder: Branch_Address <= temp_ext_imm + pc_nxt;
     
     extender_unit: temp_ext_imm <= x"00" & '0' & instruction(6 downto 0) when ExtOp = '0' else

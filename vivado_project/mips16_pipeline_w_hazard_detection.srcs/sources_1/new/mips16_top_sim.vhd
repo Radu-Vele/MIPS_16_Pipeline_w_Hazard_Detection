@@ -51,8 +51,10 @@ architecture Behavioral of mips16_top_sim is
             pc_plus_one: out std_logic_vector(15 downto 0);
             -- *** BHT Add-on
             ID_prv_pc: in std_logic_vector(3 downto 0);
+            ID_pc_plus_one: in std_logic_vector(15 downto 0);
             ID_Flush: in std_logic;
             ID_Branch_Taken: in std_logic;
+            ID_Pred: in std_logic;
             ID_Branch_Instruction: in std_logic;
             prediction: out std_logic;
             curr_pc: out std_logic_vector(3 downto 0)    
@@ -296,9 +298,11 @@ begin
         enable_pc => PC_Enable, -- TODO: If you want to test on the board replace with an and between board button and PC_Enable
         instruction => IF_instruction,
         pc_plus_one  => IF_pc_plus_one,
+        ID_pc_plus_one => IF_ID(15 downto 0),
         ID_prv_pc => IF_ID(35 downto 32),
         ID_Flush => Flush,
         ID_Branch_Taken => ID_Branch_Taken,
+        ID_Pred => IF_ID(36),
         ID_Branch_Instruction => MUXOut_C_Branch, 
         prediction => IF_prediction,
         curr_pc => IF_curr_pc    

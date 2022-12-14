@@ -60,6 +60,7 @@ begin
             when "010" => tmp_out <= "01100001011"; -- Lw
             when "011" => tmp_out <= "01100000100"; -- Sw
             when "100" => tmp_out <= "11010110000"; -- Beq
+            when "110" => tmp_out <= "11010110000"; -- Bneq
             when "111" => tmp_out <= "11101000000"; -- Jump
             when others => tmp_out <= "00000000000";
         end case;
