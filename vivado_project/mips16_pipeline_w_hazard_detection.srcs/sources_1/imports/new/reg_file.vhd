@@ -47,10 +47,10 @@ architecture Behavioral of reg_file is
 
 	signal curr_content: reg_content := (
 		x"0000",
-		x"0000",
+		x"0001",
 		x"0001",
 		x"0000",
-		x"0001",
+		x"0000",
 		x"0002",
 		x"0002",
 		x"ABCD",

@@ -49,7 +49,14 @@ entity ID_unit is
         pc_nxt: in std_logic_vector(15 downto 0);
         Branch_instruction: in std_logic;
         Branch_Taken: out std_logic;
-        Branch_Address: out std_logic_vector(15 downto 0)
+        Branch_Address: out std_logic_vector(15 downto 0);
+        EX_WrAddrChosen: in std_logic_vector(2 downto 0);
+        ID_EX_RegWrite: in std_logic; 
+        -- *** FWD Add-on
+        EX_MEM_RegWrite: in std_logic;
+        EX_MEM_RegDst: in std_logic_vector(2 downto 0);
+        EX_MEM_ALUOut: in std_logic_vector(15 downto 0)
+        
     );
 end ID_unit;
 
@@ -72,16 +79,37 @@ architecture Behavioral of ID_unit is
             ID_Rt: in std_logic_vector(2 downto 0); 
             ID_EX_Rt: in std_logic_vector(2 downto 0);
             ID_EX_MemRead: in std_logic; 
+            Branch_instruction: in std_logic;
+            ID_EX_RegWrite: in std_logic;
+            EX_MEM_RegWrite: in std_logic;
+            EX_WrAddrChosen: in std_logic_vector(2 downto 0);
+            EX_MEM_WrAddrChosen: in std_logic_vector(2 downto 0);
             IF_ID_WriteEn: out std_logic;
             Ctrl_Sel: out std_logic;
             PC_Enable: out std_logic
         );
     end component;    
     
+    component id_fwd_unit is
+        Port(
+            EX_MEM_RegWrite: in std_logic;
+            EX_MEM_RegDst: in std_logic_vector(2 downto 0);
+            ID_Branch: in std_logic;
+            ID_Rs: in std_logic_vector(2 downto 0);
+            ID_Rt: in std_logic_vector(2 downto 0);
+            ForwardA: out std_logic;
+            ForwardB: out std_logic
+        );
+    end component;
+    
     signal mux_outp: std_logic_vector(2 downto 0);  
     signal temp_rd1: std_logic_vector(15 downto 0);  
     signal temp_rd2: std_logic_vector(15 downto 0);  
+    signal eq_det_inA: std_logic_vector(15 downto 0);  
+    signal eq_det_inB: std_logic_vector(15 downto 0);  
     signal temp_ext_imm: std_logic_vector(15 downto 0); 
+    signal ForwardA: std_logic; 
+    signal ForwardB: std_logic;
 begin
     
     write_address_1 <= instruction(9 downto 7);
@@ -100,12 +128,15 @@ begin
     rd1 <= temp_rd1;
     rd2 <= temp_rd2;
     
-    branch_taken_generation: process(temp_rd1, temp_rd2, instruction, Branch_instruction) is 
+    muxEqDetA: eq_det_inA <= EX_MEM_ALUOut when ForwardA = '1' else temp_rd1;
+    muxEqDetB: eq_det_inB <= EX_MEM_ALUOut when ForwardB = '1' else temp_rd2;
+    
+    branch_taken_generation: process(eq_det_inA, eq_det_inB, instruction, Branch_instruction) is 
     begin        
         if Branch_instruction = '1' then
-            if (temp_rd1 = temp_rd2) and instruction(15 downto 13) = "100" then --beq
+            if (eq_det_inA = eq_det_inB) and instruction(15 downto 13) = "100" then --beq
                 Branch_Taken <= '1';
-            elsif (not (temp_rd1 = temp_rd2)) and instruction(15 downto 13) = "110" then --bneq
+            elsif (not (eq_det_inA = eq_det_inB)) and instruction(15 downto 13) = "110" then --bneq
                 Branch_Taken <= '1';
             else
                 Branch_Taken <= '0';
@@ -125,14 +156,29 @@ begin
     func <= instruction(2 downto 0);
     sa <= instruction(3);
     
-    load_hazard_detection: hazard_det_unit port map (
+    stall_hazard_detection: hazard_det_unit port map (
         ID_Rs => instruction(12 downto 10), 
         ID_Rt => instruction(9 downto 7),
         ID_EX_Rt => ID_EX_Rt,
         ID_EX_MemRead => ID_EX_MemRead,
+        Branch_instruction => Branch_instruction,
+        ID_EX_RegWrite => ID_EX_RegWrite,
+        EX_MEM_RegWrite => EX_MEM_RegWrite,
+        EX_WrAddrChosen => EX_WrAddrChosen,
+        EX_MEM_WrAddrChosen => EX_MEM_RegDst,
         IF_ID_WriteEn => IF_ID_WriteEn,
         Ctrl_Sel => Ctrl_Sel,
         PC_Enable => PC_Enable
+    );
+    
+    hazard_detection_fwd: id_fwd_unit port map (
+        EX_MEM_RegWrite => EX_MEM_RegWrite,
+        EX_MEM_RegDst => EX_MEM_RegDst,
+        ID_Branch => Branch_Instruction,
+        ID_Rs => instruction(12 downto 10),
+        ID_Rt => instruction(9 downto 7),
+        ForwardA => ForwardA,
+        ForwardB => ForwardB
     );
     
 end Behavioral;

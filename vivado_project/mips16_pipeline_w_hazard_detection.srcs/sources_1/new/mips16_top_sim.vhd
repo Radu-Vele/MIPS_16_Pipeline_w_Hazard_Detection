@@ -86,7 +86,13 @@ architecture Behavioral of mips16_top_sim is
             pc_nxt: in std_logic_vector(15 downto 0);
             Branch_instruction: in std_logic;
             Branch_Taken: out std_logic;
-            Branch_Address: out std_logic_vector(15 downto 0)
+            Branch_Address: out std_logic_vector(15 downto 0);
+            EX_WrAddrChosen: in std_logic_vector(2 downto 0);
+            ID_EX_RegWrite: in std_logic;
+            -- *** FWD Add-on
+            EX_MEM_RegWrite: in std_logic;
+            EX_MEM_RegDst: in std_logic_vector(2 downto 0);
+            EX_MEM_ALUOut: in std_logic_vector(15 downto 0)
         );
     end component;
     
@@ -314,10 +320,10 @@ begin
     begin
         if reset = '1' then
             IF_ID(36 downto 0) <= (others => '0');
-        elsif rising_edge(clk) then
+        elsif rising_edge(clk) and IF_ID_WriteEn = '1' then
             if Flush = '1' then
                 IF_ID(36 downto 0) <= (others => '0');    
-            elsif IF_ID_WriteEn = '1' then
+            else
                 IF_ID(36) <= IF_prediction;
                 IF_ID(35 downto 32) <= IF_curr_pc;
                 IF_ID(31 downto 16) <= IF_instruction;
@@ -346,9 +352,14 @@ begin
         Ctrl_Sel => Ctrl_Sel,
         PC_Enable => PC_Enable,
         pc_nxt => IF_ID(15 downto 0),
-        Branch_instruction => MUXOut_C_Branch,
+        Branch_instruction => C_Branch,
         Branch_Taken => ID_Branch_Taken,
-        Branch_Address => ID_Branch_Address
+        Branch_Address => ID_Branch_Address,
+        EX_WrAddrChosen => EX_wr_addr,
+        ID_EX_RegWrite => ID_EX(81),
+        EX_MEM_RegWrite => EX_MEM(55),
+        EX_MEM_RegDst => EX_MEM(2 downto 0),
+        EX_MEM_ALUOut => EX_MEM(34 downto 19)
     );
     
     CU_connect: ctrl_unit port map(

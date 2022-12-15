@@ -97,15 +97,11 @@ architecture Behavioral of IF_unit is
     --------------------------------------------
     
     signal curr_rom: rom_content := ( 
--- Dynamic branch prediction
-    -- 5 fibonnaci numbers to be computed 2 -> 5 -> 7 -> 12 -> 19
-      B"011_000_000_0000000",-- 0: store MEM[0] <= $0 - constant 0
-      B"010_000_100_0000000",-- 1: load $4 MEM[0] = 0
-      B"010_000_101_0000001",-- 2: load $5 MEM[1] = 5
-      B"001_100_100_0000001", -- 3: addi $4 = $4 + 1 -- counter
-      B"110_100_101_1111011", -- 7: bneq $4 $5 -5
-      B"011_000_010_0000110", -- 8: store MEM[6] <- $2
-      B"111_0000000000000",-- 9: Jump 0
+    -- branch after write condition
+      B"000_001_010_011_0_001",-- add $1 $ 2 $3
+      B"000_101_110_000_0_001", -- add $5 $6 $0
+      B"100_100_011_0000010", -- beq $4 $3 
+      B"000_101_110_111_0_001", -- add $5 $6 $7
       others => x"0000"
     );
     
@@ -146,7 +142,7 @@ begin
     
     ID_Pred_ID_Br_Taken <= ID_pred & ID_Branch_Taken;
     
-    mux1: process (branch_addr, ID_Flush, ID_Pred_ID_Br_Taken, mux0_out) is
+    mux1: process (branch_addr, ID_Flush, ID_Pred_ID_Br_Taken, mux0_out, ID_pc_plus_one) is
     begin
         case ID_Pred_ID_Br_Taken is 
             when "00" => mux1_out <= mux0_out;

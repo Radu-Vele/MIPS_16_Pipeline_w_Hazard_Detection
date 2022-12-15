@@ -1,7 +1,0 @@
-# compile vhdl design source files
-vhdl xil_defaultlib  \
-"../../../../mips16_pipeline_w_hazard_detection.srcs/sources_1/new/branch_history_table.vhd" \
-"../../../../mips16_pipeline_w_hazard_detection.srcs/sources_1/new/bht_tb.vhd" \
-
-# Do not sort compile order
-nosort
