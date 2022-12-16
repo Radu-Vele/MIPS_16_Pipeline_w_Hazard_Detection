@@ -32,6 +32,7 @@ entity branch_history_table is
         update_data: in std_logic_vector(15 downto 0); -- new target address
         write_address: in std_logic_vector(3 downto 0); -- the pc address that corresponds to the new target
         inc_predictor: in std_logic;
+        pc_enable: in std_logic; -- so the bht is not modified throughout stalls
         branch_instruction: in std_logic;
         flush: in std_logic;
         MSB_Pred: out std_logic;
@@ -61,14 +62,12 @@ begin
     
     --update table
     read_write_process: process (clk, write_address, inc_predictor, branch_instruction, update_data) is 
-    
         variable curr_predictor: std_logic_vector(1 downto 0);
-    
     begin
         curr_predictor := curr_bht(to_integer(unsigned(write_address)))(17 downto 16);
         
-        if rising_edge(clk) then
-            if branch_instruction = '1' then
+        if rising_edge(clk) and pc_enable = '1' then
+            if branch_instruction = '1' then -- previous branch
                 if inc_predictor = '1' then -- branch taken
                      if curr_predictor < "11" then
                         curr_predictor := curr_predictor + 1;
@@ -80,11 +79,11 @@ begin
                 end if;
             end if;
             
-            if flush = '1' then 
+            if flush = '1' and inc_predictor = '1' then -- the previous prediction was different from the outcome=branch taken
                 curr_bht(to_integer(unsigned(write_address)))(15 downto 0) <= update_data;
             end if; 
         
-        curr_bht(to_integer(unsigned(write_address)))(17 downto 16) <= curr_predictor;
+            curr_bht(to_integer(unsigned(write_address)))(17 downto 16) <= curr_predictor;
         
         end if;
        

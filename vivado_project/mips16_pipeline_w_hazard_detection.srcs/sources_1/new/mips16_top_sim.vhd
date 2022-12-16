@@ -41,10 +41,7 @@ architecture Behavioral of mips16_top_sim is
     component IF_unit is
         Port (
             clk100MHz: in std_logic;
-            jump_addr: in std_logic_vector(15 downto 0);
             branch_addr: in std_logic_vector(15 downto 0);
-            jump_ctrl: in std_logic;
-            PCsrc_ctrl: in std_logic;
             reset_pc: in std_logic;
             enable_pc: in std_logic; 
             instruction: out std_logic_vector(15 downto 0);
@@ -296,12 +293,9 @@ begin
 
     IF_connect: IF_unit port map (
         clk100MHz => clk,
-        jump_addr => ID_ext_imm,
         branch_addr => ID_Branch_Address,
-        jump_ctrl => MUXOut_C_Jump,
-        PCsrc_ctrl => ID_Branch_Taken,
         reset_pc => reset,
-        enable_pc => PC_Enable, -- TODO: If you want to test on the board replace with an and between board button and PC_Enable
+        enable_pc => PC_Enable, 
         instruction => IF_instruction,
         pc_plus_one  => IF_pc_plus_one,
         ID_pc_plus_one => IF_ID(15 downto 0),
@@ -314,7 +308,7 @@ begin
         curr_pc => IF_curr_pc    
     );
     
-    if_id_flush_detection: Flush <= ID_Branch_Taken xor IF_ID(36); -- TODO: add xor with the branch prediction bit
+    if_id_flush_detection: Flush <= ID_Branch_Taken xor IF_ID(36);
     
     pl_IF_ID: process(reset, clk) is 
     begin

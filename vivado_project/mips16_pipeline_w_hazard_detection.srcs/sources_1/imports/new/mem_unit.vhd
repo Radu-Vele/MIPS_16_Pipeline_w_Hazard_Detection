@@ -58,7 +58,7 @@ architecture Behavioral of mem_unit is
 
     type ram_content is array (0 to 255) of std_logic_vector(15 downto 0); --use the LS byte of the address
     signal curr_content: ram_content := (
-        x"FFFF",
+        x"0003",
         x"0005", 
         x"0003",
         x"1111",

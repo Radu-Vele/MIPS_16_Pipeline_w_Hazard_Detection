@@ -93,6 +93,7 @@ read_vhdl -library xil_defaultlib {
   C:/Facultate/An_3/An_3_Sem_1/Structure_of_Computer_Systems/Project/Hazard_Detection_Unit/vivado_project/mips16_pipeline_w_hazard_detection.srcs/sources_1/new/branch_history_table.vhd
   C:/Facultate/An_3/An_3_Sem_1/Structure_of_Computer_Systems/Project/Hazard_Detection_Unit/vivado_project/mips16_pipeline_w_hazard_detection.srcs/sources_1/imports/new/ctrl_unit.vhd
   C:/Facultate/An_3/An_3_Sem_1/Structure_of_Computer_Systems/Project/Hazard_Detection_Unit/vivado_project/mips16_pipeline_w_hazard_detection.srcs/sources_1/new/hazard_det_unit.vhd
+  C:/Facultate/An_3/An_3_Sem_1/Structure_of_Computer_Systems/Project/Hazard_Detection_Unit/vivado_project/mips16_pipeline_w_hazard_detection.srcs/sources_1/new/id_fwd_unit.vhd
   C:/Facultate/An_3/An_3_Sem_1/Structure_of_Computer_Systems/Project/Hazard_Detection_Unit/vivado_project/mips16_pipeline_w_hazard_detection.srcs/sources_1/imports/new/mem_unit.vhd
   C:/Facultate/An_3/An_3_Sem_1/Structure_of_Computer_Systems/Project/Hazard_Detection_Unit/vivado_project/mips16_pipeline_w_hazard_detection.srcs/sources_1/new/mips16_top_sim.vhd
   C:/Facultate/An_3/An_3_Sem_1/Structure_of_Computer_Systems/Project/Hazard_Detection_Unit/vivado_project/mips16_pipeline_w_hazard_detection.srcs/sources_1/imports/new/reg_file.vhd

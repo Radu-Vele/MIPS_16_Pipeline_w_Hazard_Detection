@@ -28,10 +28,7 @@ use IEEE.STD_LOGIC_UNSIGNED.ALL;
 entity IF_unit is
     Port (
         clk100MHz: in std_logic;
-        jump_addr: in std_logic_vector(15 downto 0);
         branch_addr: in std_logic_vector(15 downto 0);
-        jump_ctrl: in std_logic;
-        PCsrc_ctrl: in std_logic;
         reset_pc: in std_logic;
         enable_pc: in std_logic; 
         instruction: out std_logic_vector(15 downto 0);
@@ -58,6 +55,7 @@ architecture Behavioral of IF_unit is
             update_data: in std_logic_vector(15 downto 0); -- new target address
             write_address: in std_logic_vector(3 downto 0); -- the pc address that corresponds to the new target
             inc_predictor: in std_logic;
+            pc_enable: in std_logic; -- so the bht is not modified throughout stalls
             branch_instruction: in std_logic;
             flush: in std_logic;
             MSB_Pred: out std_logic;
@@ -71,25 +69,27 @@ architecture Behavioral of IF_unit is
     signal mux1_out: std_logic_vector(15 downto 0);
     signal mux0_out: std_logic_vector(15 downto 0);
     signal predicted_target: std_logic_vector(15 downto 0);
+    signal tmp_instruction: std_logic_vector(15 downto 0);
     signal MSB_Pred: std_logic;
     signal ID_Pred_ID_Br_Taken: std_logic_vector(1 downto 0);
-    
+    signal jump_if: std_logic;
+    signal jump_addr_if: std_logic_vector(15 downto 0);
     
     type rom_content is array(0 to 255) of std_logic_vector(15 downto 0);
     
     -- Instructions Format: --------------------
-    
+    --
     -- R Type
     --  ---------------------------------------
     -- | opcode | rs | rt | rd | sa | function |
     --  ---------------------------------------
     -- 15      12    9    6    3    2         0
-        
+    --    
     -- I Type
     --  ---------------------------------------
     -- | opcode | rs | rt | immediate/address  |
     --  ---------------------------------------
-    
+    --
     -- J Type
     --  ---------------------------------------
     -- | opcode |     target address           |
@@ -97,12 +97,12 @@ architecture Behavioral of IF_unit is
     --------------------------------------------
     
     signal curr_rom: rom_content := ( 
-    -- branch after write condition
-      B"000_001_010_011_0_001",-- add $1 $ 2 $3
-      B"000_101_110_000_0_001", -- add $5 $6 $0
-      B"100_100_011_0000010", -- beq $4 $3 
-      B"000_101_110_111_0_001", -- add $5 $6 $7
-      others => x"0000"
+-- Dynamic branch prediction
+    -- 5 fibonnaci numbers to be computed 2 -> 5 -> 7 -> 12 -> 19
+    B"010_000_011_0000000", -- load $3 = MEM[0]
+    B"100_011_100_0000010", -- beq $3 $4 
+    B"000_101_110_111_0_001", -- add $5 $6 $7
+    others => x"0000"
     );
     
 begin   
@@ -123,13 +123,16 @@ begin
         update_data => branch_addr,
         write_address => ID_prv_pc,
         inc_predictor => ID_Branch_Taken, 
+        pc_enable => enable_pc,
         branch_instruction => ID_Branch_Instruction,
         flush => ID_Flush,
         MSB_Pred => MSB_Pred,
         predicted_target => predicted_target
     );
     
-    instruction <= curr_rom(to_integer(unsigned(curr_pc_content(7 downto 0))));
+    tmp_instruction <= curr_rom(to_integer(unsigned(curr_pc_content(7 downto 0))));
+    
+    instruction <= tmp_instruction;
    
     -- next address computation
     adder: adder_out <= curr_pc_content + "1";
@@ -137,9 +140,7 @@ begin
     pc_plus_one <= adder_out; -- needed for ID (branch)
     
     mux_bht: mux0_out <= predicted_target when MSB_Pred = '1' else adder_out;
-    
-    --mux1: mux1_out <= branch_addr when (ID_Flush = '1') else mux0_out;
-    
+        
     ID_Pred_ID_Br_Taken <= ID_pred & ID_Branch_Taken;
     
     mux1: process (branch_addr, ID_Flush, ID_Pred_ID_Br_Taken, mux0_out, ID_pc_plus_one) is
@@ -153,9 +154,11 @@ begin
         end case;
     end process;
     
-    mux2: nxt_pc <= jump_addr when (jump_ctrl = '1') else mux1_out;  
+    jump_if <= '1' when (tmp_instruction(15 downto 13) = "111") else '0'; -- jump
+    jump_addr_if <= "000" & tmp_instruction(12 downto 0);
+    
+    mux2: nxt_pc <= jump_addr_if when (jump_if = '1') else mux1_out;  
     
     prediction <= MSB_Pred;
     curr_pc <= curr_pc_content(3 downto 0);
-    -- TODO: Add Jump detection and address computation here
 end Behavioral;

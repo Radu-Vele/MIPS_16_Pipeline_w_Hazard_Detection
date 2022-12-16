@@ -2,8 +2,8 @@
 # Vivado v2020.1 (64-bit)
 # SW Build 2902540 on Wed May 27 19:54:49 MDT 2020
 # IP Build 2902112 on Wed May 27 22:43:36 MDT 2020
-# Start of session at: Thu Dec 15 10:06:14 2022
-# Process ID: 2532
+# Start of session at: Fri Dec 16 16:06:03 2022
+# Process ID: 19320
 # Current directory: C:/Facultate/An_3/An_3_Sem_1/Structure_of_Computer_Systems/Project/Hazard_Detection_Unit/vivado_project/mips16_pipeline_w_hazard_detection.runs/synth_1
 # Command line: vivado.exe -log mips16_tb.vds -product Vivado -mode batch -messageDb vivado.pb -notrace -source mips16_tb.tcl
 # Log file: C:/Facultate/An_3/An_3_Sem_1/Structure_of_Computer_Systems/Project/Hazard_Detection_Unit/vivado_project/mips16_pipeline_w_hazard_detection.runs/synth_1/mips16_tb.vds
