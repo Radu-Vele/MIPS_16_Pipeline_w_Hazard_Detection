@@ -5,7 +5,7 @@
 -- Create Date: 03/25/2022 02:16:35 PM
 -- Design Name: 
 -- Module Name: ID_unit - Behavioral
--- Project Name: MIPS 16
+-- Project Name: MIPS 16 Pipeline with Hazard Detection and Avoidance
 -- Target Devices: Basys 3
 -- Tool Versions: 
 -- Description: Instruction Decode unit
@@ -14,6 +14,7 @@
 -- 
 -- Revision:
 -- Revision 0.01 - File Created
+-- Revision 1 - Adapted for MIPS 16 Pipeline with Hazard detection and Avoidance
 -- Additional Comments:
 -- 
 ----------------------------------------------------------------------------------

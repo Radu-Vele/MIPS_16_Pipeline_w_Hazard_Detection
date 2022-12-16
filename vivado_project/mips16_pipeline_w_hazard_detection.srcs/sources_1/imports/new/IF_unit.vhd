@@ -5,7 +5,7 @@
 -- Create Date: 03/18/2022 02:15:21 PM
 -- Design Name: 
 -- Module Name: IF_unit - Behavioral
--- Project Name: MIPS 16 Single Cycle
+-- Project Name: MIPS 16 Pipeline with Hazard Detection and Avoidance
 -- Target Devices: Basys 3
 -- Tool Versions: 2020.1
 -- Description: Instruction fetch unit - takes the instruction pointed to by the program counter and
@@ -15,6 +15,7 @@
 -- 
 -- Revision:
 -- Revision 0.01 - File Created
+-- Revision 1 - Adapted for MIPS Pipeline with Hazard detection
 -- Additional Comments:
 -- 
 ----------------------------------------------------------------------------------
@@ -97,11 +98,7 @@ architecture Behavioral of IF_unit is
     --------------------------------------------
     
     signal curr_rom: rom_content := ( 
--- Dynamic branch prediction
-    -- 5 fibonnaci numbers to be computed 2 -> 5 -> 7 -> 12 -> 19
-    B"010_000_011_0000000", -- load $3 = MEM[0]
-    B"100_011_100_0000010", -- beq $3 $4 
-    B"000_101_110_111_0_001", -- add $5 $6 $7
+    -- insert test program here
     others => x"0000"
     );
     
@@ -143,7 +140,7 @@ begin
         
     ID_Pred_ID_Br_Taken <= ID_pred & ID_Branch_Taken;
     
-    mux1: process (branch_addr, ID_Flush, ID_Pred_ID_Br_Taken, mux0_out, ID_pc_plus_one) is
+    mux1: process (branch_addr, ID_Pred_ID_Br_Taken, mux0_out, ID_pc_plus_one) is
     begin
         case ID_Pred_ID_Br_Taken is 
             when "00" => mux1_out <= mux0_out;
@@ -154,8 +151,8 @@ begin
         end case;
     end process;
     
-    jump_if <= '1' when (tmp_instruction(15 downto 13) = "111") else '0'; -- jump
-    jump_addr_if <= "000" & tmp_instruction(12 downto 0);
+    jump_detection: jump_if <= '1' when (tmp_instruction(15 downto 13) = "111") else '0'; -- jump
+    zero_ext: jump_addr_if <= "000" & tmp_instruction(12 downto 0);
     
     mux2: nxt_pc <= jump_addr_if when (jump_if = '1') else mux1_out;  
     

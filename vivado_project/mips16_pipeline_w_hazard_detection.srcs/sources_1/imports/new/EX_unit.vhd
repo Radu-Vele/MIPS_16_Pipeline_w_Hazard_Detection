@@ -5,7 +5,7 @@
 -- Create Date: 04/01/2022 11:34:52 AM
 -- Design Name: 
 -- Module Name: EX_unit - Behavioral
--- Project Name: MIPS 16
+-- Project Name: MIPS 16 Pipeline with Hazard detection and Avoidance
 -- Target Devices: Basys 3
 -- Tool Versions: 2020.1
 -- Description: Execution unit for the mips - takes the data resulting from the Instruction decode, makes the necessary
@@ -15,6 +15,7 @@
 -- 
 -- Revision:
 -- Revision 0.01 - File Created
+-- Revision 1 - Adapted for MIPS 16 Pipeline with Hazard detection and Avoidance
 -- Additional Comments:
 -- 
 ----------------------------------------------------------------------------------

@@ -1,14 +1,14 @@
 ----------------------------------------------------------------------------------
--- Company: 
--- Engineer: 
+-- Company: TUCN
+-- Engineer: Radu-Augustin Vele
 -- 
 -- Create Date: 12/04/2022 10:56:38 PM
 -- Design Name: 
 -- Module Name: EX_fwd_unit - Behavioral
--- Project Name: 
+-- Project Name: MIPS 16 Pipeline with Hazard detection and Avoidance
 -- Target Devices: 
 -- Tool Versions: 
--- Description: 
+-- Description: Forwarding unit to be placed in the EX stage
 -- 
 -- Dependencies: 
 -- 

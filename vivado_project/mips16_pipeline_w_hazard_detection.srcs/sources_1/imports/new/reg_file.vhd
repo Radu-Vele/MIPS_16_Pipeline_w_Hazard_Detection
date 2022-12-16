@@ -5,15 +5,16 @@
 -- Create Date: 03/04/2022 02:02:50 PM
 -- Design Name: 
 -- Module Name: reg_file - Behavioral
--- Project Name: 
+-- Project Name: MIPS 16 Pipeline with Hazard Detection and Avoidance
 -- Target Devices: Basys3
 -- Tool Versions: 2020.1
--- Description: Register file component with asynchronous read and synchronous write
+-- Description: Register file component with synchronous read and synchronous write
 -- 
 -- Dependencies: 
 -- 
 -- Revision:
 -- Revision 0.02 - File Created + modified for 3-bit inputs
+-- Revision 1 - Adapted for MIPS 16 Pipeline with Hazard detection and Avoidance
 -- Additional Comments:
 -- 
 ----------------------------------------------------------------------------------

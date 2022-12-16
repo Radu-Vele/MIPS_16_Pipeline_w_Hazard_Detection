@@ -1,14 +1,14 @@
 ----------------------------------------------------------------------------------
--- Company: 
--- Engineer: 
+-- Company: TUCN
+-- Engineer: Radu-Augustin Vele
 -- 
 -- Create Date: 12/15/2022 10:25:10 AM
 -- Design Name: 
 -- Module Name: id_fwd_unit - Behavioral
--- Project Name: 
+-- Project Name: MIPS 16 Pipeline with Hazard detection and Avoidance
 -- Target Devices: 
 -- Tool Versions: 
--- Description: 
+-- Description: Forwarding unit in the ID stage (branch-related)
 -- 
 -- Dependencies: 
 -- 

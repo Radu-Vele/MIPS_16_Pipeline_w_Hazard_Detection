@@ -84,9 +84,9 @@ architecture Behavioral of mips16_top_sim is
             Branch_instruction: in std_logic;
             Branch_Taken: out std_logic;
             Branch_Address: out std_logic_vector(15 downto 0);
+            -- *** FWD Add-on
             EX_WrAddrChosen: in std_logic_vector(2 downto 0);
             ID_EX_RegWrite: in std_logic;
-            -- *** FWD Add-on
             EX_MEM_RegWrite: in std_logic;
             EX_MEM_RegDst: in std_logic_vector(2 downto 0);
             EX_MEM_ALUOut: in std_logic_vector(15 downto 0)
@@ -101,7 +101,7 @@ architecture Behavioral of mips16_top_sim is
         ExtOp: out std_logic;
         ALUSrc: out std_logic;
         Branch: out std_logic;
-        Jump: out std_logic;
+        Jump: out std_logic; -- TODO: remove signal
         ALUOp: out std_logic_vector(1 downto 0);
         MemRead: out std_logic;
         MemWrite: out std_logic;
@@ -168,7 +168,7 @@ architecture Behavioral of mips16_top_sim is
     signal C_MemToReg: std_logic;
     signal C_ALUOp: std_logic_vector(1 downto 0);    
 
-    --control unit signal after flush MUX
+    --control unit signals after flush MUX
     signal MUXOut_C_RegWrite: std_logic;
     signal MUXOut_C_RegWriteValid: std_logic; -- validated with an MPG output
     signal MUXOut_C_RegDst: std_logic;
@@ -229,6 +229,7 @@ architecture Behavioral of mips16_top_sim is
     --  -----------------------
     -- | MSB_Pred | Current_PC |
     --  -----------------------
+    -- 36        35           31
     
     signal ID_EX: std_logic_vector(88 downto 0);
     
@@ -300,7 +301,7 @@ begin
         pc_plus_one  => IF_pc_plus_one,
         ID_pc_plus_one => IF_ID(15 downto 0),
         ID_prv_pc => IF_ID(35 downto 32),
-        ID_Flush => Flush,
+        ID_Flush => Flush, -- TODO: can remove signal (use a combination of the 2 below)
         ID_Branch_Taken => ID_Branch_Taken,
         ID_Pred => IF_ID(36),
         ID_Branch_Instruction => MUXOut_C_Branch, 
@@ -439,7 +440,7 @@ begin
         ALUOp => ID_EX(77 downto 76),
         ALURes => EX_ALU_out,
         EX_MEM_ALUOut => EX_MEM(34 downto 19),
-        MEM_WB_ALUOut => WB_w_data, -- modified to work for load dependency as well
+        MEM_WB_ALUOut => WB_w_data, 
         EX_MEM_RegWrite => EX_MEM(55),
         MEM_WB_RegWrite => MEM_WB(35),
         EX_MEM_RegDst => EX_MEM(2 downto 0),

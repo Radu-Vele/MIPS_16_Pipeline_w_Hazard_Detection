@@ -1,14 +1,15 @@
 ----------------------------------------------------------------------------------
--- Company: 
--- Engineer: 
+-- Company: TUCN
+-- Engineer: Radu-Augustin Vele
 -- 
 -- Create Date: 12/12/2022 09:13:06 AM
 -- Design Name: 
 -- Module Name: hazard_det_unit - Behavioral
--- Project Name: 
--- Target Devices: 
+-- Project Name: MIPS 16 Pipeline with Hazard Detection and Avoidance
+-- Target Devices: Basys3
 -- Tool Versions: 
--- Description: 
+-- Description: Detects the Load Data Hazard and inserts a stall. Additionally adds stalls related
+--    to the branch condition checking in the ID stage
 -- 
 -- Dependencies: 
 -- 

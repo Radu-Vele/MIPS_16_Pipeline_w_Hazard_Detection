@@ -1,14 +1,14 @@
 ----------------------------------------------------------------------------------
--- Company: 
--- Engineer: 
+-- Company: TUCN
+-- Engineer: Radu-Augustin Vele
 -- 
 -- Create Date: 12/06/2022 09:50:42 AM
 -- Design Name: 
 -- Module Name: MEM_fwd_unit - Behavioral
--- Project Name: 
+-- Project Name: MIPS 16 Pipeline with Hazard detection and Avoidance
 -- Target Devices: 
 -- Tool Versions: 
--- Description: 
+-- Description: Forwarding unit to be placed in MEM stage
 -- 
 -- Dependencies: 
 -- 

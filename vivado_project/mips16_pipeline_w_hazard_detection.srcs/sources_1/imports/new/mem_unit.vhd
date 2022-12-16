@@ -5,15 +5,16 @@
 -- Create Date: 04/07/2022 03:57:48 PM
 -- Design Name: Memory Unit
 -- Module Name: mem_unit - Behavioral
--- Project Name: MIPS 16 Single Cycle
+-- Project Name: MIPS 16 Pipeline with Hazard detection and Avoidance
 -- Target Devices: Basys 3
 -- Tool Versions: 2020.1
--- Description: A RAM memory with synchronous write and asynchronous read
+-- Description: A RAM memory with synchronous write and synchronous read
 -- 
 -- Dependencies: no dependencies
 -- 
 -- Revision:
 -- Revision 0.01 - File Created
+-- Revision 1 - Adapted for MIPS 16 Pipeline with Hazard detection and Avoidance
 -- Additional Comments:
 -- 
 ----------------------------------------------------------------------------------

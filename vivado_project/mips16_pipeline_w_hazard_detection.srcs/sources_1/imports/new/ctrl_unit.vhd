@@ -5,7 +5,7 @@
 -- Create Date: 03/25/2022 02:37:56 PM
 -- Design Name: 
 -- Module Name: ctrl_unit - Behavioral
--- Project Name: MIPS 16
+-- Project Name: MIPS 16 Pipeline with Hazard detection and Avoidance
 -- Target Devices: Basys 3
 -- Tool Versions: 
 -- Description: control unit, generates the control signal based on the opcode
@@ -15,6 +15,7 @@
 -- Revision:
 -- Revision 0.01 - File Created
 -- Revision 1 - Remove logic for LUI, BLZ
+-- Revision 2 - Adapted for MIPS 16 Pipeline with Hazard detection and Avoidance
 -- Additional Comments:
 -- 
 ----------------------------------------------------------------------------------

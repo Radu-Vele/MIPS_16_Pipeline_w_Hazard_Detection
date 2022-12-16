@@ -1,16 +1,19 @@
 ----------------------------------------------------------------------------------
--- Company: 
--- Engineer: 
+-- Company: TUCN
+-- Engineer: Radu-Augustin Vele
 -- 
 -- Create Date: 12/12/2022 07:45:26 PM
 -- Design Name: 
 -- Module Name: branch_history_table - Behavioral
--- Project Name: 
--- Target Devices: 
--- Tool Versions: 
--- Description: 
--- 
--- 
+-- Project Name: MIPS 16 Pipeline with Hazard Detection and Avoidance 
+-- Target Devices: Basys 3
+-- Tool Versions: 2020.1
+-- Description: Table to be used for dynamic branch prediction. A table entry is composed of
+--     two subunits: a 2-bit predictor and a target address. When a branch is taken the predictor is
+--     incremented, while when a branch is not taken the predictor is decremented. If a not-taken prediction
+--     proves to be false, the target address is updated with the correct branch address. 
+--       
+--
 -- Dependencies: 
 -- 
 -- Revision:
@@ -33,10 +36,10 @@ entity branch_history_table is
         write_address: in std_logic_vector(3 downto 0); -- the pc address that corresponds to the new target
         inc_predictor: in std_logic;
         pc_enable: in std_logic; -- so the bht is not modified throughout stalls
-        branch_instruction: in std_logic;
-        flush: in std_logic;
-        MSB_Pred: out std_logic;
-        predicted_target: out std_logic_vector(15 downto 0)
+        branch_instruction: in std_logic; -- ID
+        flush: in std_logic; -- ID
+        MSB_Pred: out std_logic; -- ID
+        predicted_target: out std_logic_vector(15 downto 0) -- IF
     );
 end branch_history_table;
 
@@ -79,7 +82,7 @@ begin
                 end if;
             end if;
             
-            if flush = '1' and inc_predictor = '1' then -- the previous prediction was different from the outcome=branch taken
+            if flush = '1' and inc_predictor = '1' then -- the previous prediction was different from the outcome (that is branch taken)
                 curr_bht(to_integer(unsigned(write_address)))(15 downto 0) <= update_data;
             end if; 
         
